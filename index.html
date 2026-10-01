@@ -13,75 +13,61 @@
     <div class="scanlines"></div>
     <div class="vignette"></div>
 
-    <!-- Header / Navbar -->
-    <header class="monarch-header">
-        <div class="header-left">
-            <div class="monarch-logo">
-                <span class="logo-symbol">▼</span> MONARCH
+    <!-- Main Layout Grid -->
+    <div class="monarch-app-container">
+
+        <!-- LEFT SIDEBAR: Logo & Telemetry Sections Menu -->
+        <aside class="sidebar-left">
+            <div class="monarch-brand">
+                <div class="logo-symbol">▼</div>
+                <div class="brand-title">MONARCH</div>
+                <div class="brand-sub">OUTPOST 54 // GOJIRA TELEMETRY</div>
             </div>
-            <div class="sub-logo">OUTPOST 54 // GOJIRA TELEMETRY</div>
-        </div>
-        <div class="header-center">
-            <div class="clearance-badge">CLEARANCE LEVEL 5 REQUIRED</div>
-            <div class="system-status"><span class="status-dot pulsing"></span> SPECIMEN: GODZILLA</div>
-        </div>
-        <div class="header-right">
+
+            <div class="status-badge-box">
+                <div class="clearance-badge">CLEARANCE LEVEL 5</div>
+                <div class="system-status"><span class="status-dot pulsing"></span> GOJIRA ACTIVE</div>
+            </div>
+
+            <!-- Telemetry Navigation Menu -->
+            <nav class="telemetry-menu">
+                <div class="menu-header">TELEMETRY SECTIONS</div>
+                <a href="#sec-roars" class="telemetry-link active">
+                    <span class="nav-icon">📢</span>
+                    <span class="nav-label">GODZILLA ROARS</span>
+                    <span class="nav-tag">[01]</span>
+                </a>
+                <a href="#sec-atomic" class="telemetry-link">
+                    <span class="nav-icon">⚛</span>
+                    <span class="nav-label">ATOMIC BREATH FX</span>
+                    <span class="nav-tag">[02]</span>
+                </a>
+                <a href="#sec-soundtrack" class="telemetry-link">
+                    <span class="nav-icon">🎵</span>
+                    <span class="nav-label">OFFICIAL SOUNDTRACK</span>
+                    <span class="nav-tag">[03]</span>
+                </a>
+                <a href="#sec-edits" class="telemetry-link">
+                    <span class="nav-icon">🔥</span>
+                    <span class="nav-label">EDIT SOUNDTRACK</span>
+                    <span class="nav-tag">[04]</span>
+                </a>
+            </nav>
+
             <button id="orca-power-btn" class="monarch-btn power-btn">INITIALIZE ORCA</button>
-        </div>
-    </header>
+        </aside>
 
-    <!-- Main Workspace -->
-    <main class="dashboard-grid">
+        <!-- CENTER AREA: Main Godzilla Soundboards -->
+        <main class="main-content">
+            <header class="center-header">
+                <h2>SPECIES: TITANUS GOJIRA — ACOUSTIC MATRIX</h2>
+                <div class="specimen-id">SPECIMEN ID: #1954-2024-ALPHA</div>
+            </header>
 
-        <!-- Left Column: Controls & Visualizer -->
-        <section class="panel console-panel">
-            <div class="panel-header">
-                <h2><span class="icon">☤</span> ORCA SIGNAL TRANSMITTER</h2>
-                <span class="panel-code">SYS.LOC // OUTPOST 54</span>
-            </div>
-            <div class="panel-body">
-                
-                <!-- Audio Frequency Waveform Visualizer -->
-                <div class="visualizer-container">
-                    <canvas id="waveform-canvas"></canvas>
-                    <div class="canvas-overlay-text">GOJIRA BIO-RESONANCE MONITOR</div>
-                </div>
-
-                <!-- Global Controls -->
-                <div class="control-group">
-                    <div class="slider-box">
-                        <label for="master-vol">MASTER TRANSMISSION GAIN</label>
-                        <input type="range" id="master-vol" min="0" max="100" value="80">
-                        <span id="vol-value" class="slider-readout">80%</span>
-                    </div>
-                    <div class="slider-box">
-                        <label for="resonance-pitch">ORCA FREQUENCY MODULATION</label>
-                        <input type="range" id="resonance-pitch" min="50" max="200" value="100">
-                        <span id="pitch-value" class="slider-readout">1.0x</span>
-                    </div>
-                </div>
-
-                <!-- Console Output Log -->
-                <div class="console-log-container">
-                    <div class="log-title">TRANSMISSION LOG</div>
-                    <div id="console-log" class="console-log">
-                        <p class="log-entry system">[SYSTEM READY] Awaiting Gojira bio-acoustic signal broadcast...</p>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Right Column: Godzilla Matrix Soundboard -->
-        <section class="panel soundboard-panel">
-            <div class="panel-header">
-                <h2><span class="icon">☣</span> GOJIRA ACOUSTIC MATRIX</h2>
-                <span class="panel-code">SPECIES: TITANUS GOJIRA</span>
-            </div>
-            <div class="panel-body soundboard-scroll">
+            <div class="soundboard-scroll-area">
 
                 <!-- Section 1: Godzilla Roars -->
-                <div class="section-container">
+                <section id="sec-roars" class="section-container">
                     <h3 class="section-title"><span class="title-icon">📢</span> GODZILLA ROARS</h3>
                     <div class="sound-grid">
                         
@@ -128,10 +114,10 @@
                         </div>
 
                     </div>
-                </div>
+                </section>
 
                 <!-- Section 2: Atomic Breath FX -->
-                <div class="section-container">
+                <section id="sec-atomic" class="section-container">
                     <h3 class="section-title"><span class="title-icon">⚛</span> ATOMIC BREATH FX</h3>
                     <div class="sound-grid">
                         
@@ -164,17 +150,17 @@
                         </div>
 
                     </div>
-                </div>
+                </section>
 
                 <!-- Section 3: Official Soundtrack -->
-                <div class="section-container">
+                <section id="sec-soundtrack" class="section-container">
                     <h3 class="section-title"><span class="title-icon">🎵</span> OFFICIAL SOUNDTRACK</h3>
                     <div class="sound-grid">
                         
                         <div class="sound-card soundtrack-card" data-type="theme-main">
                             <div class="card-status">AKIRA IFUKUBE COMPOSITION</div>
                             <div class="titan-name">MAIN THEME</div>
-                            <div class="titan-subtitle">March Brass & Timpani motif</div>
+                            <div class="titan-subtitle">March Brass & Timpani Motif</div>
                             <button class="trigger-btn">PLAY MOTIF</button>
                         </div>
 
@@ -193,10 +179,10 @@
                         </div>
 
                     </div>
-                </div>
+                </section>
 
-                <!-- Section 4: Edit / Remix Soundtrack -->
-                <div class="section-container">
+                <!-- Section 4: Edit Soundtrack -->
+                <section id="sec-edits" class="section-container">
                     <h3 class="section-title"><span class="title-icon">🔥</span> EDIT SOUNDTRACK / REMIXES</h3>
                     <div class="sound-grid">
                         
@@ -222,17 +208,47 @@
                         </div>
 
                     </div>
-                </div>
+                </section>
 
             </div>
-        </section>
-    </main>
+        </main>
 
-    <!-- Footer -->
-    <footer class="monarch-footer">
-        <div>CLASSIFIED DOCUMENTATION // MONARCH OPERATIONAL HUD // TITANUS GOJIRA DIVISION</div>
-        <div>PROPERTY OF MONARCH TITAN RESEARCH DIVISION</div>
-    </footer>
+        <!-- RIGHT SIDEBAR: Controls, Visualizer & Console Log -->
+        <aside class="sidebar-right">
+            <div class="panel-header">
+                <h2><span class="icon">☤</span> ORCA CONTROLS</h2>
+            </div>
+            
+            <!-- Audio Visualizer -->
+            <div class="visualizer-container">
+                <canvas id="waveform-canvas"></canvas>
+                <div class="canvas-overlay-text">BIO-RESONANCE MONITOR</div>
+            </div>
+
+            <!-- Controls -->
+            <div class="control-group">
+                <div class="slider-box">
+                    <label for="master-vol">MASTER TRANSMISSION GAIN</label>
+                    <input type="range" id="master-vol" min="0" max="100" value="80">
+                    <span id="vol-value" class="slider-readout">80%</span>
+                </div>
+                <div class="slider-box">
+                    <label for="resonance-pitch">ORCA FREQUENCY MODULATION</label>
+                    <input type="range" id="resonance-pitch" min="50" max="200" value="100">
+                    <span id="pitch-value" class="slider-readout">1.0x</span>
+                </div>
+            </div>
+
+            <!-- Transmission Log -->
+            <div class="console-log-container">
+                <div class="log-title">TRANSMISSION LOG</div>
+                <div id="console-log" class="console-log">
+                    <p class="log-entry system">[SYSTEM READY] Awaiting bio-acoustic signal transmission...</p>
+                </div>
+            </div>
+        </aside>
+
+    </div>
 
     <script src="index.js"></script>
 </body>
