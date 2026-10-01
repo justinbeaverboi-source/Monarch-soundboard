@@ -82,18 +82,13 @@ body {
     padding-bottom: 12px;
 }
 
-.logo-symbol {
-    font-size: 1.8rem;
-    color: var(--monarch-gold);
-}
-
-.brand-title {
-    font-family: var(--font-heading);
-    font-size: 1.8rem;
-    font-weight: 900;
-    letter-spacing: 3px;
-    color: var(--monarch-gold);
-    text-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
+/* Uploaded Image Logo Styling */
+.monarch-logo-img {
+    max-width: 180px;
+    height: auto;
+    display: block;
+    margin: 0 auto 8px auto;
+    filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.4));
 }
 
 .brand-sub {
