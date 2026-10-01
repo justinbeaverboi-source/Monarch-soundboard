@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MONARCH // Titan Bio-Acoustic & ORCA Soundboard</title>
+    <title>MONARCH // Titanus Gojira Acoustic Archive</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- CRT Scanline & Vignette Effects -->
+    <!-- Tactical Overlay FX -->
     <div class="scanlines"></div>
     <div class="vignette"></div>
 
@@ -19,11 +19,11 @@
             <div class="monarch-logo">
                 <span class="logo-symbol">▼</span> MONARCH
             </div>
-            <div class="sub-logo">BIO-ACOUSTIC TELEMETRY DIVISION</div>
+            <div class="sub-logo">OUTPOST 54 // GOJIRA TELEMETRY</div>
         </div>
         <div class="header-center">
             <div class="clearance-badge">CLEARANCE LEVEL 5 REQUIRED</div>
-            <div class="system-status"><span class="status-dot pulsing"></span> SYSTEM: ONLINE</div>
+            <div class="system-status"><span class="status-dot pulsing"></span> SPECIMEN: GODZILLA</div>
         </div>
         <div class="header-right">
             <button id="orca-power-btn" class="monarch-btn power-btn">INITIALIZE ORCA</button>
@@ -33,7 +33,7 @@
     <!-- Main Workspace -->
     <main class="dashboard-grid">
 
-        <!-- Left Column: ORCA Controller & Visualizer -->
+        <!-- Left Column: Controls & Visualizer -->
         <section class="panel console-panel">
             <div class="panel-header">
                 <h2><span class="icon">☤</span> ORCA SIGNAL TRANSMITTER</h2>
@@ -44,21 +44,10 @@
                 <!-- Audio Frequency Waveform Visualizer -->
                 <div class="visualizer-container">
                     <canvas id="waveform-canvas"></canvas>
-                    <div class="canvas-overlay-text">BIO-RESONANCE MONITOR</div>
+                    <div class="canvas-overlay-text">GOJIRA BIO-RESONANCE MONITOR</div>
                 </div>
 
-                <!-- Global Audio Controls & BGM -->
-                <div class="control-group">
-                    <h3>BACKGROUND AMBIENCE / OUTPOST ALERTS</h3>
-                    <div class="bgm-controls">
-                        <button class="bgm-btn" data-bgm="outpost">Outpost 54 Hum</button>
-                        <button class="bgm-btn" data-bgm="alert">Containment Siren</button>
-                        <button class="bgm-btn" data-bgm="sonar">Deep Ocean Sonar</button>
-                        <button class="bgm-btn stop-bgm" id="stop-bgm-btn">MUTE ALL BGM</button>
-                    </div>
-                </div>
-
-                <!-- Frequency Tuning & Master Volume Sliders -->
+                <!-- Global Controls -->
                 <div class="control-group">
                     <div class="slider-box">
                         <label for="master-vol">MASTER TRANSMISSION GAIN</label>
@@ -76,100 +65,172 @@
                 <div class="console-log-container">
                     <div class="log-title">TRANSMISSION LOG</div>
                     <div id="console-log" class="console-log">
-                        <p class="log-entry system">[SYSTEM READY] Awaiting bio-acoustic sequence launch...</p>
+                        <p class="log-entry system">[SYSTEM READY] Awaiting Gojira bio-acoustic signal broadcast...</p>
                     </div>
                 </div>
 
             </div>
         </section>
 
-        <!-- Right Column: Titan Roar Matrix Soundboard -->
+        <!-- Right Column: Godzilla Matrix Soundboard -->
         <section class="panel soundboard-panel">
             <div class="panel-header">
-                <h2><span class="icon">☣</span> TITAN ACOUSTIC MATRIX</h2>
-                <span class="panel-code">ALPHA / APEX CLASS</span>
+                <h2><span class="icon">☣</span> GOJIRA ACOUSTIC MATRIX</h2>
+                <span class="panel-code">SPECIES: TITANUS GOJIRA</span>
             </div>
-            <div class="panel-body">
-                <div class="sound-grid" id="sound-grid">
-                    
-                    <!-- Godzilla Class -->
-                    <div class="sound-card alpha-godzilla" data-titan="Godzilla" data-type="alpha-roar">
-                        <div class="card-status">DESIGNATION: TITANUS GOJIRA</div>
-                        <div class="titan-name">GODZILLA</div>
-                        <div class="titan-subtitle">ALPHA IMPERIAL ROAR</div>
-                        <button class="trigger-btn">TRANSMIT FREQUENCY</button>
-                    </div>
+            <div class="panel-body soundboard-scroll">
 
-                    <div class="sound-card alpha-godzilla" data-titan="Godzilla" data-type="atomic-breath">
-                        <div class="card-status">ENERGY DETECTED: CHERENKOV</div>
-                        <div class="titan-name">GODZILLA</div>
-                        <div class="titan-subtitle">ATOMIC PULSE CHARGE</div>
-                        <button class="trigger-btn">TRANSMIT FREQUENCY</button>
-                    </div>
+                <!-- Section 1: Godzilla Roars -->
+                <div class="section-container">
+                    <h3 class="section-title"><span class="title-icon">📢</span> GODZILLA ROARS</h3>
+                    <div class="sound-grid">
+                        
+                        <div class="sound-card alpha-godzilla" data-type="roar-2014">
+                            <div class="card-status">MONSTERVERSE (2014)</div>
+                            <div class="titan-name">ALPHA ROAR</div>
+                            <div class="titan-subtitle">50Hz Sub-Bass Blast</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
 
-                    <!-- Kong Class -->
-                    <div class="sound-card alpha-kong" data-titan="Kong" data-type="kong-roar">
-                        <div class="card-status">DESIGNATION: TITANUS KONG</div>
-                        <div class="titan-name">KONG</div>
-                        <div class="titan-subtitle">PRIMAL CHALLENGE BARK</div>
-                        <button class="trigger-btn">TRANSMIT FREQUENCY</button>
-                    </div>
+                        <div class="sound-card alpha-godzilla" data-type="roar-kotm">
+                            <div class="card-status">KING OF THE MONSTERS</div>
+                            <div class="titan-name">IMPERIAL ROAR</div>
+                            <div class="titan-subtitle">Alpha Supremacy Call</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
 
-                    <div class="sound-card alpha-kong" data-titan="Kong" data-type="chest-beat">
-                        <div class="card-status">SEISMIC FREQUENCY</div>
-                        <div class="titan-name">KONG</div>
-                        <div class="titan-subtitle">TERRESTRIAL CHEST BEAT</div>
-                        <button class="trigger-btn">TRANSMIT FREQUENCY</button>
-                    </div>
+                        <div class="sound-card alpha-godzilla" data-type="roar-heisei">
+                            <div class="card-status">HEISEI ERA (1984-1995)</div>
+                            <div class="titan-name">HEISEI SCREAM</div>
+                            <div class="titan-subtitle">Classic Metallic Tremor</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
 
-                    <!-- Ghidorah Class -->
-                    <div class="sound-card enemy-ghidorah" data-titan="Ghidorah" data-type="ghidorah-roar">
-                        <div class="card-status">DESIGNATION: MONSTER ZERO</div>
-                        <div class="titan-name">GHIDORAH</div>
-                        <div class="titan-subtitle">TRIPLE HYPER-SCREAM</div>
-                        <button class="trigger-btn">TRANSMIT FREQUENCY</button>
-                    </div>
+                        <div class="sound-card alpha-godzilla" data-type="roar-1954">
+                            <div class="card-status">ORIGINAL (1954)</div>
+                            <div class="titan-name">1954 PRIMAL ROAR</div>
+                            <div class="titan-subtitle">Resonant Double-Bass Friction</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
 
-                    <!-- Rodan Class -->
-                    <div class="sound-card titan-rodan" data-titan="Rodan" data-type="rodan-roar">
-                        <div class="card-status">DESIGNATION: TITANUS RODAN</div>
-                        <div class="titan-name">RODAN</div>
-                        <div class="titan-subtitle">SUPERSONIC SCREECH</div>
-                        <button class="trigger-btn">TRANSMIT FREQUENCY</button>
-                    </div>
+                        <div class="sound-card alpha-godzilla" data-type="roar-millennium">
+                            <div class="card-status">MILLENNIUM ERA</div>
+                            <div class="titan-name">MILLENNIUM ROAR</div>
+                            <div class="titan-subtitle">Sharp High-Pitch Growl</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
 
-                    <!-- Mothra Class -->
-                    <div class="sound-card titan-mothra" data-titan="Mothra" data-type="mothra-song">
-                        <div class="card-status">DESIGNATION: TITANUS MOTHRA</div>
-                        <div class="titan-name">MOTHRA</div>
-                        <div class="titan-subtitle">DIVINE FREQUENCY CALL</div>
-                        <button class="trigger-btn">TRANSMIT FREQUENCY</button>
-                    </div>
+                        <div class="sound-card alpha-godzilla" data-type="roar-sp">
+                            <div class="card-status">SINGULAR POINT</div>
+                            <div class="titan-name">ULTIMA ROAR</div>
+                            <div class="titan-subtitle">Dimensional Distortion Roar</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
 
-                    <!-- Mechagodzilla Class -->
-                    <div class="sound-card enemy-mecha" data-titan="Mechagodzilla" data-type="mecha-roar">
-                        <div class="card-status">DESIGNATION: APEX MECHA</div>
-                        <div class="titan-name">MECHAGODZILLA</div>
-                        <div class="titan-subtitle">SYNTHETIC CYBER ROAR</div>
-                        <button class="trigger-btn">TRANSMIT FREQUENCY</button>
                     </div>
-
-                    <!-- Shimo Class -->
-                    <div class="sound-card titan-shimo" data-titan="Shimo" data-type="shimo-roar">
-                        <div class="card-status">DESIGNATION: TITANUS SHIMO</div>
-                        <div class="titan-name">SHIMO</div>
-                        <div class="titan-subtitle">SUB-ZERO CRYOSEISM</div>
-                        <button class="trigger-btn">TRANSMIT FREQUENCY</button>
-                    </div>
-
                 </div>
+
+                <!-- Section 2: Atomic Breath FX -->
+                <div class="section-container">
+                    <h3 class="section-title"><span class="title-icon">⚛</span> ATOMIC BREATH FX</h3>
+                    <div class="sound-grid">
+                        
+                        <div class="sound-card atomic-card" data-type="atomic-charge">
+                            <div class="card-status">DORSAL PLATES ILLUMINATION</div>
+                            <div class="titan-name">ENERGY CHARGE</div>
+                            <div class="titan-subtitle">Cherenkov Plasma Hum</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card atomic-card" data-type="atomic-blast">
+                            <div class="card-status">BEAM DISCHARGE</div>
+                            <div class="titan-name">ATOMIC BREATH</div>
+                            <div class="titan-subtitle">Focused Radiation Stream</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card atomic-card" data-type="spiral-ray">
+                            <div class="card-status">CRITICAL HEAT OUTPUT</div>
+                            <div class="titan-name">SPIRAL HEAT RAY</div>
+                            <div class="titan-subtitle">Red Hyper-Thermic Blast</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card atomic-card" data-type="thermo-pulse">
+                            <div class="card-status">BURNING FORM</div>
+                            <div class="titan-name">THERMONUCLEAR PULSE</div>
+                            <div class="titan-subtitle">Nuclear Shockwave Blast</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Section 3: Official Soundtrack -->
+                <div class="section-container">
+                    <h3 class="section-title"><span class="title-icon">🎵</span> OFFICIAL SOUNDTRACK</h3>
+                    <div class="sound-grid">
+                        
+                        <div class="sound-card soundtrack-card" data-type="theme-main">
+                            <div class="card-status">AKIRA IFUKUBE COMPOSITION</div>
+                            <div class="titan-name">MAIN THEME</div>
+                            <div class="titan-subtitle">March Brass & Timpani motif</div>
+                            <button class="trigger-btn">PLAY MOTIF</button>
+                        </div>
+
+                        <div class="sound-card soundtrack-card" data-type="theme-march">
+                            <div class="card-status">DEFENSE FORCE SEQUENCE</div>
+                            <div class="titan-name">GODZILLA MARCH</div>
+                            <div class="titan-subtitle">Military Deployment Cadence</div>
+                            <button class="trigger-btn">PLAY MOTIF</button>
+                        </div>
+
+                        <div class="sound-card soundtrack-card" data-type="theme-ambience">
+                            <div class="card-status">OUTPOST 54 TELEMETRY</div>
+                            <div class="titan-name">DEEP SEA AMBIENCE</div>
+                            <div class="titan-subtitle">Sub-Oceanic Bio-Hum</div>
+                            <button class="trigger-btn">PLAY MOTIF</button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Section 4: Edit / Remix Soundtrack -->
+                <div class="section-container">
+                    <h3 class="section-title"><span class="title-icon">🔥</span> EDIT SOUNDTRACK / REMIXES</h3>
+                    <div class="sound-grid">
+                        
+                        <div class="sound-card edit-card" data-type="edit-phonk">
+                            <div class="card-status">TIKTOK / REELS EDIT</div>
+                            <div class="titan-name">GODZILLA PHONK</div>
+                            <div class="titan-subtitle">Heavy Cowbell & Distortion Bass</div>
+                            <button class="trigger-btn">PLAY EDIT MOTIF</button>
+                        </div>
+
+                        <div class="sound-card edit-card" data-type="edit-synthwave">
+                            <div class="card-status">CYBERPUNK REMIX</div>
+                            <div class="titan-name">NEON GOJIRA</div>
+                            <div class="titan-subtitle">80s Synthwave Arpeggio Edit</div>
+                            <button class="trigger-btn">PLAY EDIT MOTIF</button>
+                        </div>
+
+                        <div class="sound-card edit-card" data-type="edit-bassdrop">
+                            <div class="card-status">ALPHA TRAILER EDIT</div>
+                            <div class="titan-name">SUB BASS DROP</div>
+                            <div class="titan-subtitle">Cinematic Seismic Drop</div>
+                            <button class="trigger-btn">PLAY EDIT MOTIF</button>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </section>
     </main>
 
     <!-- Footer -->
     <footer class="monarch-footer">
-        <div>CLASSIFIED DOCUMENTATION // MONARCH OPERATIONAL HUD // ORCA SYNTHESIZER</div>
+        <div>CLASSIFIED DOCUMENTATION // MONARCH OPERATIONAL HUD // TITANUS GOJIRA DIVISION</div>
         <div>PROPERTY OF MONARCH TITAN RESEARCH DIVISION</div>
     </footer>
 

@@ -6,6 +6,9 @@
     --monarch-cyan: #00d5ff;
     --monarch-red: #ff2a2a;
     --monarch-green: #00ff88;
+    --godzilla-blue: #00bfff;
+    --atomic-orange: #ff6600;
+    --purple-edit: #b800ff;
     --text-main: #d0e4f7;
     --text-dim: #5c7d99;
     --font-heading: 'Orbitron', sans-serif;
@@ -91,7 +94,7 @@ body {
 
 .system-status {
     font-size: 0.8rem;
-    color: var(--monarch-cyan);
+    color: var(--godzilla-blue);
     text-align: center;
 }
 
@@ -133,7 +136,7 @@ body {
 /* Dashboard Layout */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 380px 1fr;
+    grid-template-columns: 360px 1fr;
     gap: 20px;
     padding: 20px;
     flex-grow: 1;
@@ -181,6 +184,11 @@ body {
     gap: 16px;
 }
 
+.soundboard-scroll {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
 /* Visualizer */
 .visualizer-container {
     position: relative;
@@ -200,60 +208,18 @@ body {
     top: 6px;
     left: 8px;
     font-size: 0.65rem;
-    color: var(--monarch-cyan);
+    color: var(--godzilla-blue);
     letter-spacing: 1px;
     opacity: 0.7;
 }
 
-/* Control Groups */
+/* Controls & Sliders */
 .control-group {
     background: rgba(5, 10, 16, 0.6);
     border: 1px solid rgba(26, 56, 76, 0.5);
     padding: 12px;
 }
 
-.control-group h3 {
-    font-size: 0.75rem;
-    color: var(--monarch-gold);
-    margin-bottom: 10px;
-    letter-spacing: 1px;
-}
-
-.bgm-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.bgm-btn {
-    background: rgba(0, 213, 255, 0.05);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    padding: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.bgm-btn:hover, .bgm-btn.active {
-    border-color: var(--monarch-cyan);
-    color: var(--monarch-cyan);
-    background: rgba(0, 213, 255, 0.15);
-}
-
-.bgm-btn.stop-bgm {
-    grid-column: span 2;
-    border-color: var(--monarch-red);
-    color: var(--monarch-red);
-}
-
-.bgm-btn.stop-bgm:hover {
-    background: var(--monarch-red);
-    color: #000;
-}
-
-/* Sliders */
 .slider-box {
     margin-bottom: 10px;
 }
@@ -267,12 +233,12 @@ body {
 
 .slider-box input[type=range] {
     width: 100%;
-    accent-color: var(--monarch-cyan);
+    accent-color: var(--godzilla-blue);
 }
 
 .slider-readout {
     font-size: 0.75rem;
-    color: var(--monarch-cyan);
+    color: var(--godzilla-blue);
     float: right;
 }
 
@@ -292,7 +258,7 @@ body {
 }
 
 .console-log {
-    height: 90px;
+    height: 110px;
     overflow-y: auto;
     font-size: 0.75rem;
     display: flex;
@@ -300,27 +266,41 @@ body {
     gap: 4px;
 }
 
-.log-entry {
-    line-height: 1.2;
+.log-entry { line-height: 1.2; }
+.log-entry.system { color: var(--text-dim); }
+.log-entry.godzilla { color: var(--godzilla-blue); }
+.log-entry.atomic { color: var(--atomic-orange); }
+.log-entry.soundtrack { color: var(--monarch-gold); }
+.log-entry.edit { color: var(--purple-edit); }
+
+/* Soundboard Sections & Cards */
+.section-container {
+    margin-bottom: 20px;
 }
 
-.log-entry.system { color: var(--text-dim); }
-.log-entry.godzilla { color: var(--monarch-cyan); }
-.log-entry.ghidorah { color: var(--monarch-gold); }
-.log-entry.alert { color: var(--monarch-red); }
+.section-title {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    color: var(--monarch-gold);
+    letter-spacing: 1px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-/* Titan Grid & Sound Cards */
 .sound-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
 }
 
 .sound-card {
     background: rgba(9, 16, 24, 0.8);
     border: 1px solid var(--border-color);
-    padding: 14px;
-    position: relative;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -329,8 +309,7 @@ body {
 
 .sound-card:hover {
     transform: translateY(-2px);
-    border-color: var(--monarch-cyan);
-    box-shadow: 0 4px 15px rgba(0, 213, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.15);
 }
 
 .card-status {
@@ -341,56 +320,57 @@ body {
 
 .titan-name {
     font-family: var(--font-heading);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     margin: 6px 0 2px 0;
 }
 
 .titan-subtitle {
-    font-size: 0.7rem;
-    color: var(--monarch-gold);
-    margin-bottom: 12px;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-bottom: 10px;
 }
 
 .trigger-btn {
     width: 100%;
-    background: rgba(0, 213, 255, 0.08);
-    border: 1px solid var(--monarch-cyan);
-    color: var(--monarch-cyan);
+    background: rgba(0, 191, 255, 0.08);
+    border: 1px solid var(--godzilla-blue);
+    color: var(--godzilla-blue);
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     padding: 8px;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .trigger-btn:hover {
-    background: var(--monarch-cyan);
+    background: var(--godzilla-blue);
     color: #000;
     font-weight: bold;
 }
 
-/* Titan Theme Accent Colors */
-.alpha-godzilla { border-left: 4px solid var(--monarch-cyan); }
-.alpha-godzilla .titan-name { color: var(--monarch-cyan); }
+/* Category Specific Styles */
+/* 1. Roars */
+.alpha-godzilla { border-left: 4px solid var(--godzilla-blue); }
+.alpha-godzilla .titan-name { color: var(--godzilla-blue); }
 
-.alpha-kong { border-left: 4px solid #e67e22; }
-.alpha-kong .titan-name { color: #e67e22; }
-.alpha-kong .trigger-btn { border-color: #e67e22; color: #e67e22; }
-.alpha-kong .trigger-btn:hover { background: #e67e22; color: #000; }
+/* 2. Atomic FX */
+.atomic-card { border-left: 4px solid var(--atomic-orange); }
+.atomic-card .titan-name { color: var(--atomic-orange); }
+.atomic-card .trigger-btn { border-color: var(--atomic-orange); color: var(--atomic-orange); background: rgba(255, 102, 0, 0.08); }
+.atomic-card .trigger-btn:hover { background: var(--atomic-orange); color: #000; }
 
-.enemy-ghidorah { border-left: 4px solid var(--monarch-gold); }
-.enemy-ghidorah .titan-name { color: var(--monarch-gold); }
-.enemy-ghidorah .trigger-btn { border-color: var(--monarch-gold); color: var(--monarch-gold); }
-.enemy-ghidorah .trigger-btn:hover { background: var(--monarch-gold); color: #000; }
+/* 3. Official Soundtrack */
+.soundtrack-card { border-left: 4px solid var(--monarch-gold); }
+.soundtrack-card .titan-name { color: var(--monarch-gold); }
+.soundtrack-card .trigger-btn { border-color: var(--monarch-gold); color: var(--monarch-gold); background: rgba(226, 168, 43, 0.08); }
+.soundtrack-card .trigger-btn:hover { background: var(--monarch-gold); color: #000; }
 
-.enemy-mecha { border-left: 4px solid var(--monarch-red); }
-.enemy-mecha .titan-name { color: var(--monarch-red); }
-.enemy-mecha .trigger-btn { border-color: var(--monarch-red); color: var(--monarch-red); }
-.enemy-mecha .trigger-btn:hover { background: var(--monarch-red); color: #000; }
-
-.titan-shimo { border-left: 4px solid #a0e6ff; }
-.titan-shimo .titan-name { color: #a0e6ff; }
+/* 4. Edits & Remixes */
+.edit-card { border-left: 4px solid var(--purple-edit); }
+.edit-card .titan-name { color: var(--purple-edit); }
+.edit-card .trigger-btn { border-color: var(--purple-edit); color: var(--purple-edit); background: rgba(184, 0, 255, 0.08); }
+.edit-card .trigger-btn:hover { background: var(--purple-edit); color: #000; }
 
 /* Footer */
 .monarch-footer {
