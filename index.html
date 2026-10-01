@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MONARCH // Titanus Gojira Acoustic Archive</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -20,7 +20,7 @@
         <aside class="sidebar-left">
             <div class="monarch-brand">
                 <div class="logo-symbol">▼</div>
-                <div class="brand-title">MONARCH</div>
+                <h1 class="brand-title">MONARCH</h1>
                 <div class="brand-sub">OUTPOST 54 // GOJIRA TELEMETRY</div>
             </div>
 
@@ -30,7 +30,7 @@
             </div>
 
             <!-- Telemetry Navigation Menu -->
-            <nav class="telemetry-menu">
+            <nav class="telemetry-menu" aria-label="Telemetry Navigation">
                 <div class="menu-header">TELEMETRY SECTIONS</div>
                 <a href="#sec-roars" class="telemetry-link active">
                     <span class="nav-icon">📢</span>
@@ -57,7 +57,7 @@
             <button id="orca-power-btn" class="monarch-btn power-btn">INITIALIZE ORCA</button>
         </aside>
 
-        <!-- CENTER AREA: Main Godzilla Soundboards -->
+        <!-- CENTER AREA: Main Godzilla Soundboards (Visually Separated) -->
         <main class="main-content">
             <header class="center-header">
                 <h2>SPECIES: TITANUS GOJIRA — ACOUSTIC MATRIX</h2>
@@ -67,10 +67,16 @@
             <div class="soundboard-scroll-area">
 
                 <!-- Section 1: Godzilla Roars -->
-                <section id="sec-roars" class="section-container">
-                    <h3 class="section-title"><span class="title-icon">📢</span> GODZILLA ROARS</h3>
+                <section id="sec-roars" class="section-card theme-roars">
+                    <div class="section-banner">
+                        <div class="title-wrap">
+                            <span class="section-badge">SECTION 01</span>
+                            <h3 class="section-title">📢 GODZILLA ROARS</h3>
+                        </div>
+                        <span class="section-desc">Vocal Acoustic Transmissions</span>
+                    </div>
+
                     <div class="sound-grid">
-                        
                         <div class="sound-card alpha-godzilla" data-type="roar-2014">
                             <div class="card-status">MONSTERVERSE (2014)</div>
                             <div class="titan-name">ALPHA ROAR</div>
@@ -95,7 +101,7 @@
                         <div class="sound-card alpha-godzilla" data-type="roar-1954">
                             <div class="card-status">ORIGINAL (1954)</div>
                             <div class="titan-name">1954 PRIMAL ROAR</div>
-                            <div class="titan-subtitle">Resonant Double-Bass Friction</div>
+                            <div class="titan-subtitle">Resonant Friction Tremor</div>
                             <button class="trigger-btn">TRANSMIT FREQUENCY</button>
                         </div>
 
@@ -109,18 +115,25 @@
                         <div class="sound-card alpha-godzilla" data-type="roar-sp">
                             <div class="card-status">SINGULAR POINT</div>
                             <div class="titan-name">ULTIMA ROAR</div>
-                            <div class="titan-subtitle">Dimensional Distortion Roar</div>
+                            <div class="titan-subtitle">Dimensional Distortion</div>
                             <button class="trigger-btn">TRANSMIT FREQUENCY</button>
                         </div>
-
                     </div>
                 </section>
 
+                <div class="section-divider"></div>
+
                 <!-- Section 2: Atomic Breath FX -->
-                <section id="sec-atomic" class="section-container">
-                    <h3 class="section-title"><span class="title-icon">⚛</span> ATOMIC BREATH FX</h3>
+                <section id="sec-atomic" class="section-card theme-atomic">
+                    <div class="section-banner">
+                        <div class="title-wrap">
+                            <span class="section-badge">SECTION 02</span>
+                            <h3 class="section-title">⚛ ATOMIC BREATH FX</h3>
+                        </div>
+                        <span class="section-desc">Radioactive Discharge Frequencies</span>
+                    </div>
+
                     <div class="sound-grid">
-                        
                         <div class="sound-card atomic-card" data-type="atomic-charge">
                             <div class="card-status">DORSAL PLATES ILLUMINATION</div>
                             <div class="titan-name">ENERGY CHARGE</div>
@@ -148,15 +161,22 @@
                             <div class="titan-subtitle">Nuclear Shockwave Blast</div>
                             <button class="trigger-btn">TRANSMIT FREQUENCY</button>
                         </div>
-
                     </div>
                 </section>
 
+                <div class="section-divider"></div>
+
                 <!-- Section 3: Official Soundtrack -->
-                <section id="sec-soundtrack" class="section-container">
-                    <h3 class="section-title"><span class="title-icon">🎵</span> OFFICIAL SOUNDTRACK</h3>
+                <section id="sec-soundtrack" class="section-card theme-soundtrack">
+                    <div class="section-banner">
+                        <div class="title-wrap">
+                            <span class="section-badge">SECTION 03</span>
+                            <h3 class="section-title">🎵 OFFICIAL SOUNDTRACK</h3>
+                        </div>
+                        <span class="section-desc">Orchestral Motifs & Ambient Bio-Tones</span>
+                    </div>
+
                     <div class="sound-grid">
-                        
                         <div class="sound-card soundtrack-card" data-type="theme-main">
                             <div class="card-status">AKIRA IFUKUBE COMPOSITION</div>
                             <div class="titan-name">MAIN THEME</div>
@@ -177,26 +197,33 @@
                             <div class="titan-subtitle">Sub-Oceanic Bio-Hum</div>
                             <button class="trigger-btn">PLAY MOTIF</button>
                         </div>
-
                     </div>
                 </section>
 
+                <div class="section-divider"></div>
+
                 <!-- Section 4: Edit Soundtrack -->
-                <section id="sec-edits" class="section-container">
-                    <h3 class="section-title"><span class="title-icon">🔥</span> EDIT SOUNDTRACK / REMIXES</h3>
+                <section id="sec-edits" class="section-card theme-edits">
+                    <div class="section-banner">
+                        <div class="title-wrap">
+                            <span class="section-badge">SECTION 04</span>
+                            <h3 class="section-title">🔥 EDIT SOUNDTRACK / REMIXES</h3>
+                        </div>
+                        <span class="section-desc">High-Energy Phonk & Cybernetic Edits</span>
+                    </div>
+
                     <div class="sound-grid">
-                        
                         <div class="sound-card edit-card" data-type="edit-phonk">
                             <div class="card-status">TIKTOK / REELS EDIT</div>
                             <div class="titan-name">GODZILLA PHONK</div>
-                            <div class="titan-subtitle">Heavy Cowbell & Distortion Bass</div>
+                            <div class="titan-subtitle">Heavy Cowbell & Distortion</div>
                             <button class="trigger-btn">PLAY EDIT MOTIF</button>
                         </div>
 
                         <div class="sound-card edit-card" data-type="edit-synthwave">
                             <div class="card-status">CYBERPUNK REMIX</div>
                             <div class="titan-name">NEON GOJIRA</div>
-                            <div class="titan-subtitle">80s Synthwave Arpeggio Edit</div>
+                            <div class="titan-subtitle">80s Synthwave Arpeggio</div>
                             <button class="trigger-btn">PLAY EDIT MOTIF</button>
                         </div>
 
@@ -206,7 +233,6 @@
                             <div class="titan-subtitle">Cinematic Seismic Drop</div>
                             <button class="trigger-btn">PLAY EDIT MOTIF</button>
                         </div>
-
                     </div>
                 </section>
 
