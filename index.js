@@ -13,44 +13,55 @@ class GodzillaAudioSystem {
 
         // Pre-load audio file for Godzilla 2014
         this.godzilla2014Audio = new Audio('godzilla-2014-roar.mp3');
+        this.godzilla2014Audio.crossOrigin = "anonymous";
         this.mediaElementConnected = false;
     }
 
     init() {
         if (this.isInitialized) return;
         
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        this.ctx = new AudioContext();
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContext();
 
-        this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.value = 0.8;
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.value = 0.8;
 
-        this.analyser = this.ctx.createAnalyser();
-        this.analyser.fftSize = 128;
+            this.analyser = this.ctx.createAnalyser();
+            this.analyser.fftSize = 128;
 
-        this.masterGain.connect(this.analyser);
-        this.analyser.connect(this.ctx.destination);
+            this.masterGain.connect(this.analyser);
+            this.analyser.connect(this.ctx.destination);
 
-        // Pipe the HTML5 audio element into the visualizer pipeline
-        if (!this.mediaElementConnected) {
-            const track = this.ctx.createMediaElementSource(this.godzilla2014Audio);
-            track.connect(this.masterGain);
-            this.mediaElementConnected = true;
+            // Try connecting to Web Audio Visualizer API
+            if (!this.mediaElementConnected) {
+                try {
+                    const track = this.ctx.createMediaElementSource(this.godzilla2014Audio);
+                    track.connect(this.masterGain);
+                    this.mediaElementConnected = true;
+                } catch (corsErr) {
+                    this.logConsole('Note: Running via direct HTML5 audio output.', 'system');
+                }
+            }
+
+            this.isInitialized = true;
+            this.logConsole('ORCA Godzilla Audio Engine online.', 'system');
+        } catch (e) {
+            this.logConsole('AudioContext init error: ' + e.message, 'system');
         }
-
-        this.isInitialized = true;
-        this.logConsole('ORCA Godzilla Audio Engine online.', 'system');
     }
 
     setMasterVolume(val) {
         if (this.masterGain) {
             this.masterGain.gain.value = val;
         }
+        if (this.godzilla2014Audio) {
+            this.godzilla2014Audio.volume = val;
+        }
     }
 
     setPitchRatio(val) {
         this.pitchRatio = val;
-        // Pitch control for native audio file
         if (this.godzilla2014Audio) {
             this.godzilla2014Audio.playbackRate = val;
         }
@@ -70,10 +81,13 @@ class GodzillaAudioSystem {
     }
 
     playSound(soundType) {
+        // Initialize context on first interaction if needed
         if (!this.isInitialized) this.init();
-        if (this.ctx.state === 'suspended') this.ctx.resume();
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
 
-        const now = this.ctx.currentTime;
+        const now = this.ctx ? this.ctx.currentTime : 0;
 
         switch (soundType) {
             // --- 1. GODZILLA ROARS ---
@@ -150,16 +164,22 @@ class GodzillaAudioSystem {
         }
     }
 
-    // Play real audio file for Godzilla 2014
+    // Direct playback with error reporting
     playGodzilla2014Audio() {
         this.godzilla2014Audio.currentTime = 0;
-        this.godzilla2014Audio.play().catch(err => {
-            this.logConsole('Audio play error: ensure godzilla-2014-roar.mp3 exists', 'system');
-        });
+        
+        const playPromise = this.godzilla2014Audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(err => {
+                this.logConsole('ERROR: Cannot play "godzilla-2014-roar.mp3". Verify file path & name.', 'system');
+                console.error('Audio play failure:', err);
+            });
+        }
     }
 
-    // SYNTHESIZERS (Used for other cards)
+    // SYNTHESIZERS
     synthRoarKOTM(now) {
+        if (!this.ctx) return;
         const osc1 = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc1.type = 'sawtooth';
@@ -178,6 +198,7 @@ class GodzillaAudioSystem {
     }
 
     synthRoarHeisei(now) {
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sawtooth';
@@ -196,6 +217,7 @@ class GodzillaAudioSystem {
     }
 
     synthRoar1954(now) {
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
@@ -214,6 +236,7 @@ class GodzillaAudioSystem {
     }
 
     synthRoarMillennium(now) {
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sawtooth';
@@ -232,6 +255,7 @@ class GodzillaAudioSystem {
     }
 
     synthRoarUltima(now) {
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sawtooth';
@@ -250,6 +274,7 @@ class GodzillaAudioSystem {
     }
 
     synthAtomicCharge(now) {
+        if (!this.ctx) return;
         const bufferSize = this.ctx.sampleRate * 2.2;
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -278,6 +303,7 @@ class GodzillaAudioSystem {
     }
 
     synthAtomicBlast(now) {
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sawtooth';
@@ -296,6 +322,7 @@ class GodzillaAudioSystem {
     }
 
     synthSpiralRay(now) {
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'square';
@@ -314,6 +341,7 @@ class GodzillaAudioSystem {
     }
 
     synthThermoPulse(now) {
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
@@ -331,6 +359,7 @@ class GodzillaAudioSystem {
     }
 
     synthMainTheme(now) {
+        if (!this.ctx) return;
         const notes = [110, 123.47, 130.81, 110, 123.47];
         notes.forEach((freq, i) => {
             const time = now + (i * 0.35);
@@ -352,6 +381,7 @@ class GodzillaAudioSystem {
     }
 
     synthMarchTheme(now) {
+        if (!this.ctx) return;
         const notes = [130.81, 146.83, 164.81, 130.81];
         notes.forEach((freq, i) => {
             const time = now + (i * 0.28);
@@ -373,6 +403,7 @@ class GodzillaAudioSystem {
     }
 
     synthDeepSeaAmbience(now) {
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
@@ -389,6 +420,7 @@ class GodzillaAudioSystem {
     }
 
     synthPhonkEdit(now) {
+        if (!this.ctx) return;
         const notes = [587.33, 587.33, 880, 587.33, 783.99];
         notes.forEach((freq, i) => {
             const time = now + (i * 0.2);
@@ -422,6 +454,7 @@ class GodzillaAudioSystem {
     }
 
     synthSynthwaveEdit(now) {
+        if (!this.ctx) return;
         const arp = [110, 164.81, 220, 329.63, 220, 164.81];
         arp.forEach((freq, i) => {
             const time = now + (i * 0.15);
@@ -442,6 +475,7 @@ class GodzillaAudioSystem {
     }
 
     synthTrailerBassDrop(now) {
+        if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
@@ -465,27 +499,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Power Button
     const powerBtn = document.getElementById('orca-power-btn');
-    powerBtn.addEventListener('click', () => {
-        audioApp.init();
-        powerBtn.innerText = 'ORCA ONLINE';
-        powerBtn.style.background = '#00ff88';
-        powerBtn.style.color = '#000000';
-    });
+    if (powerBtn) {
+        powerBtn.addEventListener('click', () => {
+            audioApp.init();
+            powerBtn.innerText = 'ORCA ONLINE';
+            powerBtn.style.background = '#00ff88';
+            powerBtn.style.color = '#000000';
+        });
+    }
 
     // Soundboard Buttons
     const soundCards = document.querySelectorAll('.sound-card');
     soundCards.forEach(card => {
         const btn = card.querySelector('.trigger-btn');
         const type = card.dataset.type;
-        btn.addEventListener('click', () => audioApp.playSound(type));
+        if (btn) {
+            btn.addEventListener('click', () => audioApp.playSound(type));
+        }
     });
 
-    // Navigation Menu Scroll & Highlight Effect
+    // Navigation Menu Scroll & Highlight
     const navLinks = document.querySelectorAll('.telemetry-link');
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            
             navLinks.forEach(l => l.classList.remove('active'));
             link.classList.add('active');
 
@@ -494,73 +531,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (targetSection) {
                 targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                
-                // Add highlight flash effect
                 targetSection.classList.remove('section-highlight');
-                void targetSection.offsetWidth; // Trigger reflow
+                void targetSection.offsetWidth;
                 targetSection.classList.add('section-highlight');
             }
         });
     });
 
-    // Sliders
+    // Controls
     const masterVolSlider = document.getElementById('master-vol');
     const volValueLabel = document.getElementById('vol-value');
-    masterVolSlider.addEventListener('input', (e) => {
-        const val = e.target.value;
-        volValueLabel.innerText = `${val}%`;
-        audioApp.setMasterVolume(val / 100);
-    });
+    if (masterVolSlider) {
+        masterVolSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (volValueLabel) volValueLabel.innerText = `${val}%`;
+            audioApp.setMasterVolume(val / 100);
+        });
+    }
 
     const pitchSlider = document.getElementById('resonance-pitch');
     const pitchValueLabel = document.getElementById('pitch-value');
-    pitchSlider.addEventListener('input', (e) => {
-        const val = e.target.value;
-        const ratio = (val / 100).toFixed(1);
-        pitchValueLabel.innerText = `${ratio}x`;
-        audioApp.setPitchRatio(parseFloat(ratio));
-    });
+    if (pitchSlider) {
+        pitchSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            const ratio = (val / 100).toFixed(1);
+            if (pitchValueLabel) pitchValueLabel.innerText = `${ratio}x`;
+            audioApp.setPitchRatio(parseFloat(ratio));
+        });
+    }
 
     // Canvas Visualizer
     const canvas = document.getElementById('waveform-canvas');
-    const canvasCtx = canvas.getContext('2d');
+    if (canvas) {
+        const canvasCtx = canvas.getContext('2d');
 
-    function resizeCanvas() {
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = canvas.parentElement.clientHeight;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
-    function drawVisualizer() {
-        requestAnimationFrame(drawVisualizer);
+        function drawVisualizer() {
+            requestAnimationFrame(drawVisualizer);
 
-        canvasCtx.fillStyle = '#020508';
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            canvasCtx.fillStyle = '#020508';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-        if (!audioApp.analyser) {
-            canvasCtx.beginPath();
-            canvasCtx.strokeStyle = '#214b6e';
-            canvasCtx.moveTo(0, canvas.height / 2);
-            canvasCtx.lineTo(canvas.width, canvas.height / 2);
-            canvasCtx.stroke();
-            return;
+            if (!audioApp.analyser) {
+                canvasCtx.beginPath();
+                canvasCtx.strokeStyle = '#214b6e';
+                canvasCtx.moveTo(0, canvas.height / 2);
+                canvasCtx.lineTo(canvas.width, canvas.height / 2);
+                canvasCtx.stroke();
+                return;
+            }
+
+            const bufferLength = audioApp.analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            audioApp.analyser.getByteFrequencyData(dataArray);
+
+            const barWidth = (canvas.width / bufferLength) * 2.5;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const barHeight = (dataArray[i] / 255) * canvas.height;
+                canvasCtx.fillStyle = `rgba(0, 240, 255, ${dataArray[i] / 255 + 0.3})`;
+                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 2;
+            }
         }
 
-        const bufferLength = audioApp.analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        audioApp.analyser.getByteFrequencyData(dataArray);
-
-        const barWidth = (canvas.width / bufferLength) * 2.5;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-            const barHeight = (dataArray[i] / 255) * canvas.height;
-            canvasCtx.fillStyle = `rgba(0, 240, 255, ${dataArray[i] / 255 + 0.3})`;
-            canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-            x += barWidth + 2;
-        }
+        drawVisualizer();
     }
-
-    drawVisualizer();
 });
