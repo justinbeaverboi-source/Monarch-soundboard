@@ -289,3 +289,4 @@ document.addEventListener('DOMContentLoaded', () => {
   updateReadouts();
   drawVisualizer();
 });
+

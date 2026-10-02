@@ -1,561 +1,344 @@
-/**
- * MONARCH Godzilla Bio-Acoustic Audio System
- * Synthesizer & Real-Audio Web Engine
- */
-
-class GodzillaAudioSystem {
-    constructor() {
-        this.ctx = null;
-        this.masterGain = null;
-        this.analyser = null;
-        this.isInitialized = false;
-        this.pitchRatio = 1.0;
-
-        // Map audio files for all 15 Roars
-        this.audioMap = {
-            'roar-2014': new Audio('godzilla-2014.mp3'),
-            'roar-evolved-1': new Audio('godzilla-evolved-1.mp3'),
-            'roar-evolved-2': new Audio('godzilla-evolved-2.mp3'),
-            'roar-2019-1': new Audio('godzilla-2019-1.mp3'),
-            'roar-dominic': new Audio('godzilla-dominic.mp3'),
-            'roar-1954-1': new Audio('godzilla-1954-1.mp3'),
-            'roar-1954-2': new Audio('godzilla-1954-2.mp3'),
-            'roar-minus-one': new Audio('godzilla-minus-one.mp3'),
-            'roar-shin': new Audio('godzilla-shin.mp3'),
-            'roar-ultimate': new Audio('godzilla-ultimate.mp3'),
-            'roar-victory': new Audio('godzilla-victory.mp3'),
-            'roar-heisei': new Audio('godzilla-heisei.mp3'),
-            'roar-zilla-1': new Audio('zilla-1.mp3'),
-            'roar-zilla-2': new Audio('zilla-2.mp3'),
-            'roar-1984': new Audio('godzilla-1984.mp3')
-        };
-
-        // Enable CORS for web audio where supported
-        Object.values(this.audioMap).forEach(audio => {
-            audio.crossOrigin = "anonymous";
-        });
-    }
-
-    init() {
-        if (this.isInitialized) return;
-        
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            this.ctx = new AudioContext();
-
-            this.masterGain = this.ctx.createGain();
-            this.masterGain.gain.value = 0.8;
-
-            this.analyser = this.ctx.createAnalyser();
-            this.analyser.fftSize = 128;
-
-            this.masterGain.connect(this.analyser);
-            this.analyser.connect(this.ctx.destination);
-
-            this.isInitialized = true;
-            this.logConsole('ORCA Godzilla Audio Engine online.', 'system');
-        } catch (e) {
-            this.logConsole('AudioContext init error: ' + e.message, 'system');
-        }
-    }
-
-    setMasterVolume(val) {
-        if (this.masterGain) {
-            this.masterGain.gain.value = val;
-        }
-        Object.values(this.audioMap).forEach(audio => {
-            audio.volume = val;
-        });
-    }
-
-    setPitchRatio(val) {
-        this.pitchRatio = val;
-        Object.values(this.audioMap).forEach(audio => {
-            audio.playbackRate = val;
-        });
-    }
-
-    logConsole(message, type = 'system') {
-        const consoleEl = document.getElementById('console-log');
-        if (!consoleEl) return;
-
-        const entry = document.createElement('div');
-        entry.className = `log-entry ${type}`;
-        const timeStamp = new Date().toISOString().substring(11, 19);
-        entry.innerText = `[${timeStamp}] ${message}`;
-
-        consoleEl.appendChild(entry);
-        consoleEl.scrollTop = consoleEl.scrollHeight;
-    }
-
-    playFileOrFallback(soundType, fallbackSynth) {
-        const audio = this.audioMap[soundType];
-        
-        if (audio) {
-            audio.currentTime = 0;
-            audio.volume = this.masterGain ? this.masterGain.gain.value : 0.8;
-            audio.playbackRate = this.pitchRatio;
-
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    this.logConsole(`Playing MP3 for: ${soundType}`, 'godzilla');
-                }).catch(() => {
-                    this.logConsole(`MP3 missing/blocked for ${soundType}. Triggering Synth Fallback.`, 'system');
-                    if (fallbackSynth) fallbackSynth();
-                });
-            }
-        } else if (fallbackSynth) {
-            fallbackSynth();
-        }
-    }
-
-    playSound(soundType) {
-        if (!this.isInitialized) this.init();
-        if (this.ctx && this.ctx.state === 'suspended') {
-            this.ctx.resume();
-        }
-
-        const now = this.ctx ? this.ctx.currentTime : 0;
-
-        switch (soundType) {
-            // --- 15 GODZILLA ROARS ---
-            case 'roar-2014':
-                this.logConsole('Transmitting: Godzilla 2014 Bio-Acoustic Sample', 'godzilla');
-                this.playFileOrFallback('roar-2014', () => this.synthRoarGeneric(now, 60, 200, 2.8));
-                break;
-            case 'roar-evolved-1':
-                this.logConsole('Transmitting: Evolved Godzilla Roar 1', 'godzilla');
-                this.playFileOrFallback('roar-evolved-1', () => this.synthRoarGeneric(now, 90, 350, 2.5));
-                break;
-            case 'roar-evolved-2':
-                this.logConsole('Transmitting: Evolved Godzilla Roar 2', 'godzilla');
-                this.playFileOrFallback('roar-evolved-2', () => this.synthRoarGeneric(now, 110, 420, 3.0));
-                break;
-            case 'roar-2019-1':
-                this.logConsole('Transmitting: Godzilla 2019 #1 Call', 'godzilla');
-                this.playFileOrFallback('roar-2019-1', () => this.synthRoarGeneric(now, 75, 240, 2.9));
-                break;
-            case 'roar-dominic':
-                this.logConsole('Transmitting: Godzilla Dominic Custom Telemetry', 'godzilla');
-                this.playFileOrFallback('roar-dominic', () => this.synthRoarGeneric(now, 85, 310, 2.2));
-                break;
-            case 'roar-1954-1':
-                this.logConsole('Transmitting: Godzilla 1954 Original #1', 'godzilla');
-                this.playFileOrFallback('roar-1954-1', () => this.synthRoarGeneric(now, 50, 120, 2.0, 'triangle'));
-                break;
-            case 'roar-1954-2':
-                this.logConsole('Transmitting: Godzilla 1954 Echo #2', 'godzilla');
-                this.playFileOrFallback('roar-1954-2', () => this.synthRoarGeneric(now, 45, 140, 2.4, 'triangle'));
-                break;
-            case 'roar-minus-one':
-                this.logConsole('Transmitting: Godzilla Minus One Destructive Scream', 'godzilla');
-                this.playFileOrFallback('roar-minus-one', () => this.synthRoarGeneric(now, 130, 480, 2.6));
-                break;
-            case 'roar-shin':
-                this.logConsole('Transmitting: Shin Godzilla Unnatural Cry', 'godzilla');
-                this.playFileOrFallback('roar-shin', () => this.synthRoarGeneric(now, 160, 520, 3.2, 'sawtooth'));
-                break;
-            case 'roar-ultimate':
-                this.logConsole('Transmitting: Godzilla Ultimate Alpha Roar', 'godzilla');
-                this.playFileOrFallback('roar-ultimate', () => this.synthRoarGeneric(now, 40, 450, 3.5));
-                break;
-            case 'roar-victory':
-                this.logConsole('Transmitting: Godzilla Victory Dominance Signal', 'godzilla');
-                this.playFileOrFallback('roar-victory', () => this.synthRoarGeneric(now, 100, 380, 2.7));
-                break;
-            case 'roar-heisei':
-                this.logConsole('Transmitting: Godzilla Heisei Era Classic Metallic Roar', 'godzilla');
-                this.playFileOrFallback('roar-heisei', () => this.synthRoarGeneric(now, 120, 280, 1.8));
-                break;
-            case 'roar-zilla-1':
-                this.logConsole('Transmitting: Zilla 1998 High Piercing Scream', 'godzilla');
-                this.playFileOrFallback('roar-zilla-1', () => this.synthRoarGeneric(now, 220, 650, 1.5, 'square'));
-                break;
-            case 'roar-zilla-2':
-                this.logConsole('Transmitting: Zilla 1998 Agile Shriek', 'godzilla');
-                this.playFileOrFallback('roar-zilla-2', () => this.synthRoarGeneric(now, 250, 700, 1.2, 'square'));
-                break;
-            case 'roar-1984':
-                this.logConsole('Transmitting: Godzilla 1984 Sub-Bass Bellow', 'godzilla');
-                this.playFileOrFallback('roar-1984', () => this.synthRoarGeneric(now, 35, 110, 3.0, 'sine'));
-                break;
-
-            // --- ATOMIC BREATH FX ---
-            case 'atomic-charge':
-                this.logConsole('Energy Detected: Dorsal Plate Charge', 'atomic');
-                this.synthAtomicCharge(now);
-                break;
-            case 'atomic-blast':
-                this.logConsole('Discharge: Atomic Breath Blast', 'atomic');
-                this.synthAtomicBlast(now);
-                break;
-            case 'spiral-ray':
-                this.logConsole('Warning: Red Spiral Heat Ray', 'atomic');
-                this.synthSpiralRay(now);
-                break;
-            case 'thermo-pulse':
-                this.logConsole('CRITICAL: Thermonuclear Pulse Wave', 'atomic');
-                this.synthThermoPulse(now);
-                break;
-
-            // --- OFFICIAL SOUNDTRACK ---
-            case 'theme-main':
-                this.logConsole('Soundtrack: Akira Ifukube Main Theme', 'soundtrack');
-                this.synthMainTheme(now);
-                break;
-            case 'theme-march':
-                this.logConsole('Soundtrack: Godzilla Military March', 'soundtrack');
-                this.synthMarchTheme(now);
-                break;
-            case 'theme-ambience':
-                this.logConsole('Ambience: Deep Sea Bio-Telemetry', 'soundtrack');
-                this.synthDeepSeaAmbience(now);
-                break;
-
-            // --- EDITS & REMIXES ---
-            case 'edit-phonk':
-                this.logConsole('Edit Track: Godzilla Drift Phonk Motif', 'edit');
-                this.synthPhonkEdit(now);
-                break;
-            case 'edit-synthwave':
-                this.logConsole('Edit Track: Cyberpunk Neon Gojira', 'edit');
-                this.synthSynthwaveEdit(now);
-                break;
-            case 'edit-bassdrop':
-                this.logConsole('Edit Track: Trailer Sub Bass Drop', 'edit');
-                this.synthTrailerBassDrop(now);
-                break;
-        }
-    }
-
-    // Dynamic Synth Generator for Roars
-    synthRoarGeneric(now, startFreq, maxFreq, duration, waveType = 'sawtooth') {
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-
-        osc.type = waveType;
-        osc.frequency.setValueAtTime(startFreq * this.pitchRatio, now);
-        osc.frequency.exponentialRampToValueAtTime(maxFreq * this.pitchRatio, now + (duration * 0.2));
-        osc.frequency.exponentialRampToValueAtTime((startFreq * 0.8) * this.pitchRatio, now + duration);
-
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.85, now + 0.2);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(now);
-        osc.stop(now + duration);
-    }
-
-    // ATOMIC & SOUNDTRACK SYNTHS
-    synthAtomicCharge(now) {
-        if (!this.ctx) return;
-        const bufferSize = this.ctx.sampleRate * 2.2;
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.Q.value = 10.0;
-        filter.frequency.setValueAtTime(150, now);
-        filter.frequency.exponentialRampToValueAtTime(3200 * this.pitchRatio, now + 2.0);
-
-        const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.8, now + 1.8);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.masterGain);
-
-        noise.start(now);
-        noise.stop(now + 2.2);
-    }
-
-    synthAtomicBlast(now) {
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(300 * this.pitchRatio, now);
-        osc.frequency.linearRampToValueAtTime(800 * this.pitchRatio, now + 0.3);
-        osc.frequency.linearRampToValueAtTime(120 * this.pitchRatio, now + 2.0);
-
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.9, now + 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(now);
-        osc.stop(now + 2.0);
-    }
-
-    synthSpiralRay(now) {
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(200 * this.pitchRatio, now);
-        osc.frequency.exponentialRampToValueAtTime(1200 * this.pitchRatio, now + 0.5);
-        osc.frequency.exponentialRampToValueAtTime(90 * this.pitchRatio, now + 2.2);
-
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.95, now + 0.2);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.3);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(now);
-        osc.stop(now + 2.3);
-    }
-
-    synthThermoPulse(now) {
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(120 * this.pitchRatio, now);
-        osc.frequency.exponentialRampToValueAtTime(25 * this.pitchRatio, now + 1.8);
-
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(1.0, now + 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(now);
-        osc.stop(now + 2.0);
-    }
-
-    synthMainTheme(now) {
-        if (!this.ctx) return;
-        const notes = [110, 123.47, 130.81, 110, 123.47];
-        notes.forEach((freq, i) => {
-            const time = now + (i * 0.35);
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(freq * this.pitchRatio, time);
-
-            gain.gain.setValueAtTime(0.01, time);
-            gain.gain.linearRampToValueAtTime(0.4, time + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.32);
-
-            osc.connect(gain);
-            gain.connect(this.masterGain);
-            osc.start(time);
-            osc.stop(time + 0.32);
-        });
-    }
-
-    synthMarchTheme(now) {
-        if (!this.ctx) return;
-        const notes = [130.81, 146.83, 164.81, 130.81];
-        notes.forEach((freq, i) => {
-            const time = now + (i * 0.28);
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(freq * this.pitchRatio, time);
-
-            gain.gain.setValueAtTime(0.01, time);
-            gain.gain.linearRampToValueAtTime(0.5, time + 0.04);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
-
-            osc.connect(gain);
-            gain.connect(this.masterGain);
-            osc.start(time);
-            osc.stop(time + 0.25);
-        });
-    }
-
-    synthDeepSeaAmbience(now) {
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(45, now);
-
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.4, now + 0.5);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(now);
-        osc.stop(now + 3.0);
-    }
-
-    synthPhonkEdit(now) {
-        if (!this.ctx) return;
-        const notes = [587.33, 587.33, 880, 587.33, 783.99];
-        notes.forEach((freq, i) => {
-            const time = now + (i * 0.2);
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(freq, time);
-
-            gain.gain.setValueAtTime(0.3, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
-
-            osc.connect(gain);
-            gain.connect(this.masterGain);
-            osc.start(time);
-            osc.stop(time + 0.15);
-        });
-
-        const bassOsc = this.ctx.createOscillator();
-        const bassGain = this.ctx.createGain();
-        bassOsc.type = 'sawtooth';
-        bassOsc.frequency.setValueAtTime(50, now);
-
-        bassGain.gain.setValueAtTime(0.6, now);
-        bassGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-
-        bassOsc.connect(bassGain);
-        bassGain.connect(this.masterGain);
-        bassOsc.start(now);
-        bassOsc.stop(now + 1.2);
-    }
-
-    synthSynthwaveEdit(now) {
-        if (!this.ctx) return;
-        const arp = [110, 164.81, 220, 329.63, 220, 164.81];
-        arp.forEach((freq, i) => {
-            const time = now + (i * 0.15);
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(freq * this.pitchRatio, time);
-
-            gain.gain.setValueAtTime(0.3, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
-
-            osc.connect(gain);
-            gain.connect(this.masterGain);
-            osc.start(time);
-            osc.stop(time + 0.12);
-        });
-    }
-
-    synthTrailerBassDrop(now) {
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(140 * this.pitchRatio, now);
-        osc.frequency.exponentialRampToValueAtTime(20 * this.pitchRatio, now + 2.2);
-
-        gain.gain.setValueAtTime(0.01, now);
-        gain.gain.linearRampToValueAtTime(0.95, now + 0.1);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.3);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-        osc.start(now);
-        osc.stop(now + 2.3);
-    }
-}
-
-// Application Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const audioApp = new GodzillaAudioSystem();
-
-    const powerBtn = document.getElementById('orca-power-btn');
-    if (powerBtn) {
-        powerBtn.addEventListener('click', () => {
-            audioApp.init();
-            powerBtn.innerText = 'ORCA ONLINE';
-            powerBtn.style.background = '#00ff88';
-            powerBtn.style.color = '#000000';
-        });
-    }
-
-    const soundCards = document.querySelectorAll('.sound-card');
-    soundCards.forEach(card => {
-        const btn = card.querySelector('.trigger-btn');
-        const type = card.dataset.type;
-        if (btn) {
-            btn.addEventListener('click', () => audioApp.playSound(type));
-        }
-    });
-
-    const masterVolSlider = document.getElementById('master-vol');
-    const volValueLabel = document.getElementById('vol-value');
-    if (masterVolSlider) {
-        masterVolSlider.addEventListener('input', (e) => {
-            const val = e.target.value;
-            if (volValueLabel) volValueLabel.innerText = `${val}%`;
-            audioApp.setMasterVolume(val / 100);
-        });
-    }
-
-    const pitchSlider = document.getElementById('resonance-pitch');
-    const pitchValueLabel = document.getElementById('pitch-value');
-    if (pitchSlider) {
-        pitchSlider.addEventListener('input', (e) => {
-            const val = e.target.value;
-            const ratio = (val / 100).toFixed(1);
-            if (pitchValueLabel) pitchValueLabel.innerText = `${ratio}x`;
-            audioApp.setPitchRatio(parseFloat(ratio));
-        });
-    }
-
-    const canvas = document.getElementById('waveform-canvas');
-    if (canvas) {
-        const canvasCtx = canvas.getContext('2d');
-
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        function drawVisualizer() {
-            requestAnimationFrame(drawVisualizer);
-
-            canvasCtx.fillStyle = '#020508';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-            if (!audioApp.analyser) {
-                canvasCtx.beginPath();
-                canvasCtx.strokeStyle = '#214b6e';
-                canvasCtx.moveTo(0, canvas.height / 2);
-                canvasCtx.lineTo(canvas.width, canvas.height / 2);
-                canvasCtx.stroke();
-                return;
-            }
-
-            const bufferLength = audioApp.analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            audioApp.analyser.getByteFrequencyData(dataArray);
-
-            const barWidth = (canvas.width / bufferLength) * 2.5;
-            let x = 0;
-
-            for (let i = 0; i < bufferLength; i++) {
-                const barHeight = (dataArray[i] / 255) * canvas.height;
-                canvasCtx.fillStyle = `rgba(0, 240, 255, ${dataArray[i] / 255 + 0.3})`;
-                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                x += barWidth + 2;
-            }
-        }
-
-        drawVisualizer();
-    }
-});
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONARCH // Titanus Gojira Acoustic Archive</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Tactical Overlay FX -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+
+    <!-- Main Layout Grid -->
+    <div class="monarch-app-container">
+
+        <!-- LEFT SIDEBAR: Monarch Logo & Telemetry Sections Menu -->
+        <aside class="sidebar-left">
+            <div class="monarch-brand">
+                <img src="Screenshot 2026-09-30 214515.png" alt="Monarch Logo" class="monarch-logo-img">
+                <div class="brand-sub">OUTPOST 54 // GOJIRA TELEMETRY</div>
+            </div>
+
+            <div class="status-badge-box">
+                <div class="clearance-badge">CLEARANCE LEVEL 5</div>
+                <div class="system-status"><span class="status-dot pulsing"></span> GOJIRA ACTIVE</div>
+            </div>
+
+            <!-- Telemetry Navigation Menu -->
+            <nav class="telemetry-menu" aria-label="Telemetry Navigation">
+                <div class="menu-header">TELEMETRY SECTIONS</div>
+                <a href="#sec-roars" class="telemetry-link active">
+                    <span class="nav-icon">📢</span>
+                    <span class="nav-label">GODZILLA ROARS</span>
+                    <span class="nav-tag">[01]</span>
+                </a>
+                <a href="#sec-atomic" class="telemetry-link">
+                    <span class="nav-icon">⚛</span>
+                    <span class="nav-label">ATOMIC BREATH FX</span>
+                    <span class="nav-tag">[02]</span>
+                </a>
+                <a href="#sec-soundtrack" class="telemetry-link">
+                    <span class="nav-icon">🎵</span>
+                    <span class="nav-label">OFFICIAL SOUNDTRACK</span>
+                    <span class="nav-tag">[03]</span>
+                </a>
+                <a href="#sec-edits" class="telemetry-link">
+                    <span class="nav-icon">🔥</span>
+                    <span class="nav-label">EDIT SOUNDTRACK</span>
+                    <span class="nav-tag">[04]</span>
+                </a>
+            </nav>
+
+            <button id="orca-power-btn" class="monarch-btn power-btn">INITIALIZE ORCA</button>
+        </aside>
+
+        <!-- CENTER AREA: Main Godzilla Soundboards -->
+        <main class="main-content">
+            <header class="center-header">
+                <h2>SPECIES: TITANUS GOJIRA — ACOUSTIC MATRIX</h2>
+                <div class="specimen-id">SPECIMEN ID: #1954-2024-ALPHA</div>
+            </header>
+
+            <div class="soundboard-scroll-area">
+
+                <!-- Section 1: Godzilla Roars (15 Soundboards) -->
+                <section id="sec-roars" class="section-card theme-roars">
+                    <div class="section-banner">
+                        <div class="title-wrap">
+                            <span class="section-badge">SECTION 01</span>
+                            <h3 class="section-title">📢 GODZILLA ROARS</h3>
+                        </div>
+                        <span class="section-desc">Vocal Acoustic Transmissions</span>
+                    </div>
+
+                    <div class="sound-grid">
+                        <div class="sound-card alpha-godzilla" data-type="roar-2014">
+                            <div class="card-status">MONSTERVERSE (2014)</div>
+                            <div class="titan-name">GODZILLA 2014</div>
+                            <div class="titan-subtitle">50Hz Sub-Bass Blast</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-evolved-1">
+                            <div class="card-status">GXK: THE NEW EMPIRE</div>
+                            <div class="titan-name">EVOLVED ROAR 1</div>
+                            <div class="titan-subtitle">Overcharged Pink Energy</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-evolved-2">
+                            <div class="card-status">GXK: THE NEW EMPIRE</div>
+                            <div class="titan-name">EVOLVED ROAR 2</div>
+                            <div class="titan-subtitle">Hyper-Resonant Tremor</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-2019-1">
+                            <div class="card-status">KING OF THE MONSTERS</div>
+                            <div class="titan-name">GODZILLA 2019 #1</div>
+                            <div class="titan-subtitle">Alpha Territory Call</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-dominic">
+                            <div class="card-status">CLASSIFIED TELEMETRY</div>
+                            <div class="titan-name">GODZILLA DOMINIC</div>
+                            <div class="titan-subtitle">Unique Bio-Acoustic Mix</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-1954-1">
+                            <div class="card-status">ORIGINAL CLASSIC (1954)</div>
+                            <div class="titan-name">GODZILLA 1954 #1</div>
+                            <div class="titan-subtitle">Resonant Friction Tremor</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-1954-2">
+                            <div class="card-status">ORIGINAL CLASSIC (1954)</div>
+                            <div class="titan-name">GODZILLA 1954 #2</div>
+                            <div class="titan-subtitle">Deep Metallic Echo</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-minus-one">
+                            <div class="card-status">TOHO MINUS ONE (2023)</div>
+                            <div class="titan-name">GODZILLA MINUS ONE</div>
+                            <div class="titan-subtitle">Primal Destructive Screech</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-shin">
+                            <div class="card-status">TOHO SHIN (2016)</div>
+                            <div class="titan-name">SHIN GODZILLA</div>
+                            <div class="titan-subtitle">Eerie Unnatural Screech</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-ultimate">
+                            <div class="card-status">ALPHA SUPREMACY</div>
+                            <div class="titan-name">ULTIMATE ROAR</div>
+                            <div class="titan-subtitle">Maximum Resonance Shockwave</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-victory">
+                            <div class="card-status">POST-COMBAT SIGNAL</div>
+                            <div class="titan-name">VICTORY ROAR</div>
+                            <div class="titan-subtitle">Triumphant Dominance Cry</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-heisei">
+                            <div class="card-status">HEISEI ERA (1984-1995)</div>
+                            <div class="titan-name">GODZILLA HEISEI</div>
+                            <div class="titan-subtitle">Classic Heavy Metallic Roar</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-zilla-1">
+                            <div class="card-status">TRISTAR (1998)</div>
+                            <div class="titan-name">ZILLA ROAR 1</div>
+                            <div class="titan-subtitle">High-Pitched Piercing Scream</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-zilla-2">
+                            <div class="card-status">TRISTAR (1998)</div>
+                            <div class="titan-name">ZILLA ROAR 2</div>
+                            <div class="titan-subtitle">Agile Reptilian Shriek</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card alpha-godzilla" data-type="roar-1984">
+                            <div class="card-status">RETURN OF GODZILLA</div>
+                            <div class="titan-name">GODZILLA 1984</div>
+                            <div class="titan-subtitle">Deep Low-Frequency Bellow</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="section-divider"></div>
+
+                <!-- Section 2: Atomic Breath FX -->
+                <section id="sec-atomic" class="section-card theme-atomic">
+                    <div class="section-banner">
+                        <div class="title-wrap">
+                            <span class="section-badge">SECTION 02</span>
+                            <h3 class="section-title">⚛ ATOMIC BREATH FX</h3>
+                        </div>
+                        <span class="section-desc">Radioactive Discharge Frequencies</span>
+                    </div>
+
+                    <div class="sound-grid">
+                        <div class="sound-card atomic-card" data-type="atomic-charge">
+                            <div class="card-status">DORSAL PLATES ILLUMINATION</div>
+                            <div class="titan-name">ENERGY CHARGE</div>
+                            <div class="titan-subtitle">Cherenkov Plasma Hum</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card atomic-card" data-type="atomic-blast">
+                            <div class="card-status">BEAM DISCHARGE</div>
+                            <div class="titan-name">ATOMIC BREATH</div>
+                            <div class="titan-subtitle">Focused Radiation Stream</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card atomic-card" data-type="spiral-ray">
+                            <div class="card-status">CRITICAL HEAT OUTPUT</div>
+                            <div class="titan-name">SPIRAL HEAT RAY</div>
+                            <div class="titan-subtitle">Red Hyper-Thermic Blast</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+
+                        <div class="sound-card atomic-card" data-type="thermo-pulse">
+                            <div class="card-status">BURNING FORM</div>
+                            <div class="titan-name">THERMONUCLEAR PULSE</div>
+                            <div class="titan-subtitle">Nuclear Shockwave Blast</div>
+                            <button class="trigger-btn">TRANSMIT FREQUENCY</button>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="section-divider"></div>
+
+                <!-- Section 3: Official Soundtrack -->
+                <section id="sec-soundtrack" class="section-card theme-soundtrack">
+                    <div class="section-banner">
+                        <div class="title-wrap">
+                            <span class="section-badge">SECTION 03</span>
+                            <h3 class="section-title">🎵 OFFICIAL SOUNDTRACK</h3>
+                        </div>
+                        <span class="section-desc">Orchestral Motifs & Ambient Bio-Tones</span>
+                    </div>
+
+                    <div class="sound-grid">
+                        <div class="sound-card soundtrack-card" data-type="theme-main">
+                            <div class="card-status">AKIRA IFUKUBE COMPOSITION</div>
+                            <div class="titan-name">MAIN THEME</div>
+                            <div class="titan-subtitle">March Brass & Timpani Motif</div>
+                            <button class="trigger-btn">PLAY MOTIF</button>
+                        </div>
+
+                        <div class="sound-card soundtrack-card" data-type="theme-march">
+                            <div class="card-status">DEFENSE FORCE SEQUENCE</div>
+                            <div class="titan-name">GODZILLA MARCH</div>
+                            <div class="titan-subtitle">Military Deployment Cadence</div>
+                            <button class="trigger-btn">PLAY MOTIF</button>
+                        </div>
+
+                        <div class="sound-card soundtrack-card" data-type="theme-ambience">
+                            <div class="card-status">OUTPOST 54 TELEMETRY</div>
+                            <div class="titan-name">DEEP SEA AMBIENCE</div>
+                            <div class="titan-subtitle">Sub-Oceanic Bio-Hum</div>
+                            <button class="trigger-btn">PLAY MOTIF</button>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="section-divider"></div>
+
+                <!-- Section 4: Edit Soundtrack -->
+                <section id="sec-edits" class="section-card theme-edits">
+                    <div class="section-banner">
+                        <div class="title-wrap">
+                            <span class="section-badge">SECTION 04</span>
+                            <h3 class="section-title">🔥 EDIT SOUNDTRACK / REMIXES</h3>
+                        </div>
+                        <span class="section-desc">High-Energy Phonk & Cybernetic Edits</span>
+                    </div>
+
+                    <div class="sound-grid">
+                        <div class="sound-card edit-card" data-type="edit-phonk">
+                            <div class="card-status">TIKTOK / REELS EDIT</div>
+                            <div class="titan-name">GODZILLA PHONK</div>
+                            <div class="titan-subtitle">Heavy Cowbell & Distortion</div>
+                            <button class="trigger-btn">PLAY EDIT MOTIF</button>
+                        </div>
+
+                        <div class="sound-card edit-card" data-type="edit-synthwave">
+                            <div class="card-status">CYBERPUNK REMIX</div>
+                            <div class="titan-name">NEON GOJIRA</div>
+                            <div class="titan-subtitle">80s Synthwave Arpeggio</div>
+                            <button class="trigger-btn">PLAY EDIT MOTIF</button>
+                        </div>
+
+                        <div class="sound-card edit-card" data-type="edit-bassdrop">
+                            <div class="card-status">ALPHA TRAILER EDIT</div>
+                            <div class="titan-name">SUB BASS DROP</div>
+                            <div class="titan-subtitle">Cinematic Seismic Drop</div>
+                            <button class="trigger-btn">PLAY EDIT MOTIF</button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <!-- RIGHT SIDEBAR: Controls, Visualizer & Console Log -->
+        <aside class="sidebar-right">
+            <div class="panel-header">
+                <h2><span class="icon">☤</span> ORCA CONTROLS</h2>
+            </div>
+            
+            <!-- Audio Visualizer -->
+            <div class="visualizer-container">
+                <canvas id="waveform-canvas"></canvas>
+                <div class="canvas-overlay-text">BIO-RESONANCE MONITOR</div>
+            </div>
+
+            <!-- Controls -->
+            <div class="control-group">
+                <div class="slider-box">
+                    <label for="master-vol">MASTER TRANSMISSION GAIN</label>
+                    <input type="range" id="master-vol" min="0" max="100" value="80">
+                    <span id="vol-value" class="slider-readout">80%</span>
+                </div>
+                <div class="slider-box">
+                    <label for="resonance-pitch">ORCA FREQUENCY MODULATION</label>
+                    <input type="range" id="resonance-pitch" min="50" max="200" value="100">
+                    <span id="pitch-value" class="slider-readout">1.0x</span>
+                </div>
+            </div>
+
+            <!-- Transmission Log -->
+            <div class="console-log-container">
+                <div class="log-title">TRANSMISSION LOG</div>
+                <div id="console-log" class="console-log">
+                    <p class="log-entry system">[SYSTEM READY] Awaiting bio-acoustic signal transmission...</p>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- External Script Link -->
+    <script src="index.js"></script>
+</body>
+</html>
