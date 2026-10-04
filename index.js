@@ -183,6 +183,40 @@ document.addEventListener('DOMContentLoaded', () => {
     log(`${label} edit engaged.`, 'edit');
   };
 
+  const roarAudioFiles = {
+    'roar-2014': 'Godzilla 2014_.mov',
+    'roar-evolved-2': 'Evolved roar #2.mov',
+    'roar-2019-1': 'Godzilla 2019 #1.mov',
+    'roar-dominic': 'Godzilla Dominic.mov',
+    'roar-minus-one': 'Godzilla Minus One.mov',
+    'roar-ultimate': 'Ultimate roar.mp4',
+    'roar-victory': 'Victory roar.mov',
+    'roar-zilla-1': 'Zilla Roar 1.mov',
+    'roar-1984': 'Godzilla 1984.mov'
+  };
+  const roarAudioPlayers = new Map();
+
+  const playRoarAudio = (type) => {
+    const filename = roarAudioFiles[type];
+    let player = roarAudioPlayers.get(type);
+
+    if (!player) {
+      const audio = new Audio();
+      audio.src = `Godzilla%20Roars%20Audio/${encodeURIComponent(filename)}`;
+      audio.preload = 'auto';
+      const source = audioCtx.createMediaElementSource(audio);
+      source.connect(masterGain);
+      player = { audio, source };
+      roarAudioPlayers.set(type, player);
+    }
+
+    player.audio.currentTime = 0;
+    player.audio.playbackRate = Number(resonancePitch.value) / 100;
+    player.audio.play()
+      .then(() => log(`${filename} transmission confirmed.`, 'godzilla'))
+      .catch((error) => log(`[ERROR] Unable to play ${filename}: ${error.message}`, 'system'));
+  };
+
   const playByType = (type) => {
     ensureAudio();
     if (!audioCtx || !masterGain) return;
@@ -228,6 +262,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (section) {
         flashSection(section.id);
       }
+    }
+
+    if (roarAudioFiles[type]) {
+      playRoarAudio(type);
+      return;
     }
 
     action();
@@ -289,4 +328,3 @@ document.addEventListener('DOMContentLoaded', () => {
   updateReadouts();
   drawVisualizer();
 });
-
