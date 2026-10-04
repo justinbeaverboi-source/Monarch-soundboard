@@ -185,18 +185,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const roarAudioFiles = {
     'roar-2014': 'Godzilla 2014_.mov',
+    'roar-evolved-1': 'Evolved roar #1.mov',
     'roar-evolved-2': 'Evolved roar #2.mov',
     'roar-2019-1': 'Godzilla 2019 #1.mov',
     'roar-dominic': 'Godzilla Dominic.mov',
+    'roar-1954-1': 'Godzilla 1954 #1.mov',
     'roar-minus-one': 'Godzilla Minus One.mov',
     'roar-ultimate': 'Ultimate roar.mp4',
     'roar-victory': 'Victory roar.mov',
     'roar-zilla-1': 'Zilla Roar 1.mov',
+    'roar-zilla-2': 'Zilla Roar 2.mov',
+    'roar-shin': 'Shin Godzilla.mov',
+    'roar-heisei': 'Godzila Heisi.mov',
     'roar-1984': 'Godzilla 1984.mov'
   };
   const roarAudioPlayers = new Map();
 
-  const playRoarAudio = (type) => {
+  const playRoarAudio = (type, onPlaybackFailure) => {
     const filename = roarAudioFiles[type];
     let player = roarAudioPlayers.get(type);
 
@@ -214,7 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
     player.audio.playbackRate = Number(resonancePitch.value) / 100;
     player.audio.play()
       .then(() => log(`${filename} transmission confirmed.`, 'godzilla'))
-      .catch((error) => log(`[ERROR] Unable to play ${filename}: ${error.message}`, 'system'));
+      .catch((error) => {
+        log(`[ERROR] Unable to play ${filename}: ${error.message}`, 'system');
+        if (onPlaybackFailure) onPlaybackFailure();
+      });
   };
 
   const playByType = (type) => {
@@ -265,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (roarAudioFiles[type]) {
-      playRoarAudio(type);
+      playRoarAudio(type, type === 'roar-ultimate' ? action : undefined);
       return;
     }
 
