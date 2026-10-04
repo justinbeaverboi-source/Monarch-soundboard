@@ -1,338 +1,504 @@
+/* ==========================================================================
+   MONARCH ORCA TELEMETRY ENGINE - JS
+   Web Audio API Procedural Synthesizer & Canvas Visualizer
+   ========================================================================== */
+
 document.addEventListener('DOMContentLoaded', () => {
-  const masterVol = document.getElementById('master-vol');
-  const resonancePitch = document.getElementById('resonance-pitch');
-  const volValue = document.getElementById('vol-value');
-  const pitchValue = document.getElementById('pitch-value');
-  const consoleLog = document.getElementById('console-log');
-  const powerBtn = document.getElementById('orca-power-btn');
-  const canvas = document.getElementById('waveform-canvas');
-  const ctx = canvas.getContext('2d');
-  const links = document.querySelectorAll('.telemetry-link');
-  const statusText = document.querySelector('.system-status');
+    // --------------------------------------------------
+    // State & DOM Elements
+    // --------------------------------------------------
+    let audioCtx = null;
+    let masterGainNode = null;
+    let analyserNode = null;
+    let isOrcaActive = false;
+    let pitchMultiplier = 1.0;
 
-  let audioCtx = null;
-  let masterGain = null;
-  let isOnline = false;
+    const powerBtn = document.getElementById('orca-power-btn');
+    const masterVolSlider = document.getElementById('master-vol');
+    const volValueDisplay = document.getElementById('vol-value');
+    const pitchSlider = document.getElementById('resonance-pitch');
+    const pitchValueDisplay = document.getElementById('pitch-value');
+    const consoleLog = document.getElementById('console-log');
+    const canvas = document.getElementById('waveform-canvas');
+    const canvasCtx = canvas ? canvas.getContext('2d') : null;
+    const soundCards = document.querySelectorAll('.sound-card');
+    const navLinks = document.querySelectorAll('.telemetry-link');
 
-  const log = (message, type = 'system') => {
-    const entry = document.createElement('p');
-    entry.className = `log-entry ${type}`;
-    entry.textContent = message;
-    consoleLog.prepend(entry);
+    // --------------------------------------------------
+    // Core Web Audio Initialization
+    // --------------------------------------------------
+    function initAudioEngine() {
+        if (audioCtx) return;
 
-    while (consoleLog.children.length > 8) {
-      consoleLog.removeChild(consoleLog.lastChild);
-    }
-  };
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
 
-  const ensureAudio = () => {
-    if (audioCtx) return;
+        // Master Gain
+        masterGainNode = audioCtx.createGain();
+        const initialVol = parseFloat(masterVolSlider.value) / 100;
+        masterGainNode.gain.setValueAtTime(initialVol, audioCtx.currentTime);
 
-    const AudioCtor = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtor) {
-      log('[ERROR] Web Audio is not supported in this browser.', 'system');
-      return;
-    }
+        // Visualizer Analyser Node
+        analyserNode = audioCtx.createAnalyser();
+        analyserNode.fftSize = 512;
 
-    audioCtx = new AudioCtor();
-    masterGain = audioCtx.createGain();
-    masterGain.gain.value = Number(masterVol.value) / 100 * 0.35;
-    masterGain.connect(audioCtx.destination);
-  };
+        // Routing: Signal -> Master Gain -> Analyser -> Output
+        masterGainNode.connect(analyserNode);
+        analyserNode.connect(audioCtx.destination);
 
-  const updateReadouts = () => {
-    const volume = Number(masterVol.value);
-    const pitch = Number(resonancePitch.value) / 100;
-    volValue.textContent = `${volume}%`;
-    pitchValue.textContent = `${pitch.toFixed(1)}x`;
-
-    if (masterGain && audioCtx) {
-      masterGain.gain.value = volume / 100 * 0.35;
-    }
-  };
-
-  const setPowerState = (online) => {
-    isOnline = online;
-    powerBtn.textContent = online ? 'ORCA ONLINE' : 'INITIALIZE ORCA';
-    powerBtn.style.background = online ? 'var(--monarch-gold)' : '#002b3d';
-    powerBtn.style.color = online ? '#000' : 'var(--monarch-cyan)';
-
-    const signal = statusText.querySelector('.status-dot');
-    if (signal) {
-      signal.style.backgroundColor = online ? '#00ff88' : '#ff3333';
+        isOrcaActive = true;
+        powerBtn.classList.add('active');
+        powerBtn.innerText = 'ORCA ONLINE [ONLINE]';
+        writeLog('[ORCA ONLINE] Acoustic telemetry array initialized.', 'system');
     }
 
-    const label = statusText.lastChild;
-    if (label) {
-      label.textContent = online ? ' GOJIRA ACTIVE' : ' SYSTEM IDLE';
-    }
-  };
+    function toggleOrcaPower() {
+        if (!audioCtx) {
+            initAudioEngine();
+            return;
+        }
 
-  const flashSection = (sectionId) => {
-    const section = document.getElementById(sectionId);
-    if (!section) return;
-    section.classList.remove('section-highlight');
-    void section.offsetWidth;
-    section.classList.add('section-highlight');
-    setTimeout(() => section.classList.remove('section-highlight'), 1400);
-  };
-
-  const triggerNoiseBurst = (frequency, endFrequency, duration, gainLevel, filterFreq, noiseLevel, label, type) => {
-    if (!audioCtx || !masterGain) return;
-
-    const now = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const noise = audioCtx.createBufferSource();
-    const filter = audioCtx.createBiquadFilter();
-    const gainNode = audioCtx.createGain();
-    const noiseGain = audioCtx.createGain();
-
-    osc.type = type || 'sawtooth';
-    osc.frequency.setValueAtTime(frequency, now);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(30, endFrequency), now + duration);
-
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(filterFreq, now);
-    filter.Q.value = 1.5;
-
-    gainNode.gain.setValueAtTime(0.0001, now);
-    gainNode.gain.exponentialRampToValueAtTime(gainLevel, now + 0.05);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-    const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < data.length; i += 1) {
-      data[i] = (Math.random() * 2 - 1) * noiseLevel;
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+            isOrcaActive = true;
+            powerBtn.classList.add('active');
+            powerBtn.innerText = 'ORCA ONLINE [ONLINE]';
+            writeLog('[ORCA RESUMED] Bio-acoustic sync re-established.', 'system');
+        } else if (audioCtx.state === 'running') {
+            audioCtx.suspend();
+            isOrcaActive = false;
+            powerBtn.classList.remove('active');
+            powerBtn.innerText = 'INITIALIZE ORCA';
+            writeLog('[ORCA PAUSED] Acoustic matrix suspended.', 'warning');
+        }
     }
 
-    noise.buffer = noiseBuffer;
-    noiseGain.gain.setValueAtTime(noiseLevel * 0.8, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    if (powerBtn) {
+        powerBtn.addEventListener('click', toggleOrcaPower);
+    }
 
-    osc.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(masterGain);
+    // --------------------------------------------------
+    // Control Sliders
+    // --------------------------------------------------
+    if (masterVolSlider) {
+        masterVolSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            volValueDisplay.innerText = `${val}%`;
+            if (masterGainNode && audioCtx) {
+                masterGainNode.gain.setTargetAtTime(val / 100, audioCtx.currentTime, 0.05);
+            }
+        });
+    }
 
-    noise.connect(noiseGain);
-    noiseGain.connect(masterGain);
+    if (pitchSlider) {
+        pitchSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            pitchMultiplier = parseFloat(val) / 100;
+            pitchValueDisplay.innerText = `${pitchMultiplier.toFixed(1)}x`;
+        });
+    }
 
-    osc.start(now);
-    noise.start(now);
-    osc.stop(now + duration + 0.08);
-    noise.stop(now + duration + 0.08);
+    // --------------------------------------------------
+    // Console Output Logging
+    // --------------------------------------------------
+    function writeLog(message, type = 'info') {
+        if (!consoleLog) return;
+        const entry = document.createElement('p');
+        const timestamp = new Date().toTimeString().split(' ')[0];
+        entry.className = `log-entry ${type}`;
+        entry.innerText = `[${timestamp}] ${message}`;
 
-    log(`${label} transmission confirmed.`, type === 'atomic' ? 'atomic' : 'godzilla');
-  };
+        consoleLog.appendChild(entry);
+        consoleLog.scrollTop = consoleLog.scrollHeight;
+    }
 
-  const triggerChord = (label, notes, duration, type = 'triangle', gainLevel = 0.08) => {
-    if (!audioCtx || !masterGain) return;
+    // --------------------------------------------------
+    // Procedural Sound Generator (Monarch Audio Engine)
+    // --------------------------------------------------
+    function triggerSound(soundType, cardTitle) {
+        if (!audioCtx) {
+            initAudioEngine();
+        } else if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+            isOrcaActive = true;
+            powerBtn.classList.add('active');
+            powerBtn.innerText = 'ORCA ONLINE [ONLINE]';
+        }
 
-    const now = audioCtx.currentTime;
-    notes.forEach((freq, index) => {
-      const osc = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      const filter = audioCtx.createBiquadFilter();
+        const now = audioCtx.currentTime;
 
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq * Number(resonancePitch.value) / 100, now + index * 0.02);
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(1800 + index * 200, now);
+        // Sound profile routing
+        switch (soundType) {
+            case 'roar-2014':
+            case 'roar-2019-1':
+            case 'roar-ultimate':
+                playSubBassRoar(now, 55 * pitchMultiplier, 2.5);
+                break;
 
-      gainNode.gain.setValueAtTime(0.0001, now);
-      gainNode.gain.exponentialRampToValueAtTime(gainLevel, now + 0.08);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            case 'roar-evolved-1':
+            case 'roar-evolved-2':
+                playEvolvedPinkRoar(now, 90 * pitchMultiplier, 2.2);
+                break;
 
-      osc.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(masterGain);
-      osc.start(now + index * 0.02);
-      osc.stop(now + duration + 0.2);
+            case 'roar-1954-1':
+            case 'roar-1954-2':
+            case 'roar-heisei':
+            case 'roar-1984':
+                playClassicMetallicRoar(now, 120 * pitchMultiplier, 2.0);
+                break;
+
+            case 'roar-shin':
+            case 'roar-minus-one':
+                playPiercingScreech(now, 220 * pitchMultiplier, 2.8);
+                break;
+
+            case 'roar-zilla-1':
+            case 'roar-zilla-2':
+                playPiercingScreech(now, 380 * pitchMultiplier, 1.5);
+                break;
+
+            case 'roar-dominic':
+            case 'roar-victory':
+                playSubBassRoar(now, 70 * pitchMultiplier, 3.0);
+                break;
+
+            // Atomic Breath FX
+            case 'atomic-charge':
+                playCherenkovCharge(now, 1.8);
+                break;
+            case 'atomic-blast':
+            case 'spiral-ray':
+                playAtomicBeamDischarge(now, 2.5);
+                break;
+            case 'thermo-pulse':
+                playThermoPulse(now, 3.0);
+                break;
+
+            // Soundtrack Motifs
+            case 'theme-main':
+            case 'theme-march':
+                playOrchestralMotif(now);
+                break;
+            case 'theme-ambience':
+                playDeepSeaAmbience(now);
+                break;
+
+            // Edits & Remixes
+            case 'edit-phonk':
+            case 'edit-synthwave':
+            case 'edit-bassdrop':
+                playEditBeat(now);
+                break;
+
+            default:
+                playSubBassRoar(now, 80 * pitchMultiplier, 1.5);
+                break;
+        }
+
+        writeLog(`TRANSMITTING FREQUENCY: [${cardTitle.toUpperCase()}]`, 'transmit');
+    }
+
+    // Acoustic Synthesis Handlers
+    function playSubBassRoar(startTime, baseFreq, duration) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(baseFreq, startTime);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 2.5, startTime + 0.4);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, startTime + duration);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(400, startTime);
+        filter.frequency.linearRampToValueAtTime(1200, startTime + 0.5);
+        filter.frequency.linearRampToValueAtTime(200, startTime + duration);
+
+        gain.gain.setValueAtTime(0.01, startTime);
+        gain.gain.linearRampToValueAtTime(0.8, startTime + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(masterGainNode);
+
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+    }
+
+    function playEvolvedPinkRoar(startTime, baseFreq, duration) {
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc1.type = 'sawtooth';
+        osc2.type = 'square';
+
+        osc1.frequency.setValueAtTime(baseFreq, startTime);
+        osc1.frequency.exponentialRampToValueAtTime(baseFreq * 3, startTime + 0.3);
+        osc1.frequency.linearRampToValueAtTime(baseFreq * 0.5, startTime + duration);
+
+        osc2.frequency.setValueAtTime(baseFreq * 1.5, startTime);
+        osc2.frequency.exponentialRampToValueAtTime(baseFreq * 4, startTime + 0.3);
+
+        gain.gain.setValueAtTime(0.01, startTime);
+        gain.gain.linearRampToValueAtTime(0.7, startTime + 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(masterGainNode);
+
+        osc1.start(startTime);
+        osc2.start(startTime);
+        osc1.stop(startTime + duration);
+        osc2.stop(startTime + duration);
+    }
+
+    function playClassicMetallicRoar(startTime, baseFreq, duration) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(baseFreq, startTime);
+        osc.frequency.linearRampToValueAtTime(baseFreq * 1.8, startTime + 0.2);
+        osc.frequency.linearRampToValueAtTime(baseFreq * 0.6, startTime + duration);
+
+        gain.gain.setValueAtTime(0.6, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGainNode);
+
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+    }
+
+    function playPiercingScreech(startTime, baseFreq, duration) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(baseFreq, startTime);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 2.2, startTime + 0.3);
+        osc.frequency.linearRampToValueAtTime(baseFreq * 0.8, startTime + duration);
+
+        gain.gain.setValueAtTime(0.5, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGainNode);
+
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+    }
+
+    function playCherenkovCharge(startTime, duration) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(80, startTime);
+        osc.frequency.exponentialRampToValueAtTime(1200 * pitchMultiplier, startTime + duration);
+
+        gain.gain.setValueAtTime(0.05, startTime);
+        gain.gain.linearRampToValueAtTime(0.8, startTime + duration);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration + 0.2);
+
+        osc.connect(gain);
+        gain.connect(masterGainNode);
+
+        osc.start(startTime);
+        osc.stop(startTime + duration + 0.2);
+    }
+
+    function playAtomicBeamDischarge(startTime, duration) {
+        // White noise generator for beam acoustic rumble
+        const bufferSize = audioCtx.sampleRate * duration;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(300 * pitchMultiplier, startTime);
+        filter.Q.setValueAtTime(3.0, startTime);
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.8, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(masterGainNode);
+
+        noise.start(startTime);
+        noise.stop(startTime + duration);
+    }
+
+    function playThermoPulse(startTime, duration) {
+        playSubBassRoar(startTime, 40 * pitchMultiplier, duration);
+        playAtomicBeamDischarge(startTime + 0.2, duration - 0.2);
+    }
+
+    function playOrchestralMotif(startTime) {
+        const notes = [130.81, 146.83, 164.81, 174.61]; // C3, D3, E3, F3
+        notes.forEach((freq, index) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const noteTime = startTime + index * 0.25;
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq * pitchMultiplier, noteTime);
+
+            gain.gain.setValueAtTime(0.4, noteTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.4);
+
+            osc.connect(gain);
+            gain.connect(masterGainNode);
+
+            osc.start(noteTime);
+            osc.stop(noteTime + 0.4);
+        });
+    }
+
+    function playDeepSeaAmbience(startTime) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(35 * pitchMultiplier, startTime);
+
+        gain.gain.setValueAtTime(0.01, startTime);
+        gain.gain.linearRampToValueAtTime(0.5, startTime + 1.0);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 3.5);
+
+        osc.connect(gain);
+        gain.connect(masterGainNode);
+
+        osc.start(startTime);
+        osc.stop(startTime + 3.5);
+    }
+
+    function playEditBeat(startTime) {
+        // Kick Drum
+        const kickOsc = audioCtx.createOscillator();
+        const kickGain = audioCtx.createGain();
+
+        kickOsc.frequency.setValueAtTime(160 * pitchMultiplier, startTime);
+        kickOsc.frequency.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+
+        kickGain.gain.setValueAtTime(0.9, startTime);
+        kickGain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+
+        kickOsc.connect(kickGain);
+        kickGain.connect(masterGainNode);
+
+        kickOsc.start(startTime);
+        kickOsc.stop(startTime + 0.3);
+    }
+
+    // --------------------------------------------------
+    // Event Listeners for Soundboard Cards
+    // --------------------------------------------------
+    soundCards.forEach((card) => {
+        const btn = card.querySelector('.trigger-btn');
+        const soundType = card.getAttribute('data-type');
+        const title = card.querySelector('.titan-name')?.innerText || 'Telemetry Trigger';
+
+        if (btn) {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Visual Pulse Effect
+                card.classList.add('transmitting');
+                setTimeout(() => card.classList.remove('transmitting'), 400);
+
+                triggerSound(soundType, title);
+            });
+        }
     });
 
-    log(`${label} motif initiated.`, 'soundtrack');
-  };
-
-  const triggerPhonkBurst = (label, lowFreq, accentFreq) => {
-    if (!audioCtx || !masterGain) return;
-
-    const now = audioCtx.currentTime;
-    for (let i = 0; i < 2; i += 1) {
-      const osc = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      osc.type = i === 0 ? 'sawtooth' : 'square';
-      osc.frequency.setValueAtTime(lowFreq + i * 20, now);
-      gainNode.gain.setValueAtTime(0.0001, now);
-      gainNode.gain.exponentialRampToValueAtTime(0.16, now + 0.04);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.75);
-      osc.connect(gainNode).connect(masterGain);
-      osc.start(now + i * 0.02);
-      osc.stop(now + 0.8);
-    }
-
-    const accent = audioCtx.createOscillator();
-    const accentGain = audioCtx.createGain();
-    accent.type = 'triangle';
-    accent.frequency.setValueAtTime(accentFreq, now);
-    accentGain.gain.setValueAtTime(0.0001, now);
-    accentGain.gain.exponentialRampToValueAtTime(0.08, now + 0.04);
-    accentGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
-    accent.connect(accentGain).connect(masterGain);
-    accent.start(now);
-    accent.stop(now + 0.5);
-
-    log(`${label} edit engaged.`, 'edit');
-  };
-
-  const roarAudioFiles = {
-    'roar-2014': 'Godzilla 2014_.mov',
-    'roar-evolved-1': 'Evolved roar #1.mov',
-    'roar-evolved-2': 'Evolved roar #2.mov',
-    'roar-2019-1': 'Godzilla 2019 #1.mov',
-    'roar-dominic': 'Godzilla Dominic.mov',
-    'roar-1954-1': 'Godzilla 1954 #1.mov',
-    'roar-minus-one': 'Godzilla Minus One.mov',
-    'roar-ultimate': 'Ultimate roar.mp4',
-    'roar-victory': 'Victory roar.mov',
-    'roar-zilla-1': 'Zilla Roar 1.mov',
-    'roar-zilla-2': 'Zilla Roar 2.mov',
-    'roar-shin': 'Shin Godzilla.mov',
-    'roar-heisei': 'Godzila Heisi.mov',
-    'roar-1984': 'Godzilla 1984.mov'
-  };
-  const roarAudioPlayers = new Map();
-
-  const playRoarAudio = (type, onPlaybackFailure) => {
-    const filename = roarAudioFiles[type];
-    let player = roarAudioPlayers.get(type);
-
-    if (!player) {
-      const audio = new Audio();
-      audio.src = `Godzilla%20Roars%20Audio/${encodeURIComponent(filename)}`;
-      audio.preload = 'auto';
-      const source = audioCtx.createMediaElementSource(audio);
-      source.connect(masterGain);
-      player = { audio, source };
-      roarAudioPlayers.set(type, player);
-    }
-
-    player.audio.currentTime = 0;
-    player.audio.playbackRate = Number(resonancePitch.value) / 100;
-    player.audio.play()
-      .then(() => log(`${filename} transmission confirmed.`, 'godzilla'))
-      .catch((error) => {
-        log(`[ERROR] Unable to play ${filename}: ${error.message}`, 'system');
-        if (onPlaybackFailure) onPlaybackFailure();
-      });
-  };
-
-  const playByType = (type) => {
-    ensureAudio();
-    if (!audioCtx || !masterGain) return;
-
-    const basePitch = Number(resonancePitch.value) / 100;
-    const transmissionMap = {
-      'roar-2014': () => triggerNoiseBurst(45 * basePitch, 18, 1.4, 0.18, 900, 0.22, 'Godzilla 2014 roar', 'sawtooth'),
-      'roar-evolved-1': () => triggerNoiseBurst(62 * basePitch, 21, 1.5, 0.2, 1200, 0.18, 'Evolved roar 1', 'sawtooth'),
-      'roar-evolved-2': () => triggerNoiseBurst(70 * basePitch, 25, 1.6, 0.21, 1400, 0.2, 'Evolved roar 2', 'square'),
-      'roar-2019-1': () => triggerNoiseBurst(58 * basePitch, 24, 1.4, 0.19, 1000, 0.18, '2019 roar #1', 'triangle'),
-      'roar-dominic': () => triggerNoiseBurst(52 * basePitch, 19, 1.7, 0.17, 850, 0.26, 'Dominic roar', 'sawtooth'),
-      'roar-1954-1': () => triggerNoiseBurst(39 * basePitch, 14, 1.8, 0.16, 700, 0.2, '1954 roar #1', 'triangle'),
-      'roar-1954-2': () => triggerNoiseBurst(43 * basePitch, 16, 1.7, 0.17, 750, 0.18, '1954 roar #2', 'sawtooth'),
-      'roar-minus-one': () => triggerNoiseBurst(68 * basePitch, 18, 1.4, 0.22, 1700, 0.26, 'Minus One roar', 'sawtooth'),
-      'roar-shin': () => triggerNoiseBurst(74 * basePitch, 28, 1.5, 0.2, 1800, 0.22, 'Shin roar', 'square'),
-      'roar-ultimate': () => triggerNoiseBurst(81 * basePitch, 30, 1.9, 0.24, 2100, 0.29, 'Ultimate roar', 'sawtooth'),
-      'roar-victory': () => triggerNoiseBurst(57 * basePitch, 23, 1.2, 0.18, 1200, 0.15, 'Victory roar', 'triangle'),
-      'roar-heisei': () => triggerNoiseBurst(49 * basePitch, 20, 1.5, 0.18, 980, 0.18, 'Heisei roar', 'sawtooth'),
-      'roar-zilla-1': () => triggerNoiseBurst(88 * basePitch, 32, 1.2, 0.14, 2100, 0.2, 'Zilla roar 1', 'square'),
-      'roar-zilla-2': () => triggerNoiseBurst(92 * basePitch, 36, 1.1, 0.15, 2200, 0.18, 'Zilla roar 2', 'triangle'),
-      'roar-1984': () => triggerNoiseBurst(46 * basePitch, 17, 1.6, 0.17, 760, 0.2, '1984 roar', 'sawtooth'),
-      'atomic-charge': () => triggerNoiseBurst(120 * basePitch, 42, 1.2, 0.17, 2200, 0.16, 'Atomic charge', 'triangle'),
-      'atomic-blast': () => triggerNoiseBurst(160 * basePitch, 60, 1.0, 0.22, 2600, 0.12, 'Atomic breath', 'sawtooth'),
-      'spiral-ray': () => triggerNoiseBurst(180 * basePitch, 72, 1.4, 0.25, 3000, 0.14, 'Spiral heat ray', 'square'),
-      'thermo-pulse': () => triggerNoiseBurst(140 * basePitch, 55, 0.9, 0.19, 2500, 0.18, 'Thermonuclear pulse', 'sawtooth'),
-      'theme-main': () => triggerChord('Main theme', [110, 146.83, 164.81], 2.2, 'triangle', 0.06),
-      'theme-march': () => triggerChord('Godzilla march', [98, 123.47, 146.83], 2.0, 'sine', 0.05),
-      'theme-ambience': () => triggerChord('Deep sea ambience', [65.41, 82.41, 98], 3.0, 'sine', 0.04),
-      'edit-phonk': () => triggerPhonkBurst('Godzilla phonk', 55, 90),
-      'edit-synthwave': () => triggerPhonkBurst('Neon Gojira', 92, 160),
-      'edit-bassdrop': () => triggerPhonkBurst('Sub bass drop', 38, 75)
-    };
-
-    const action = transmissionMap[type];
-    if (!action) {
-      log(`[ERROR] Unknown signal type: ${type}`, 'system');
-      return;
-    }
-
-    const card = document.querySelector(`[data-type="${type}"]`);
-    if (card) {
-      const section = card.closest('.section-card');
-      if (section) {
-        flashSection(section.id);
-      }
-    }
-
-    if (roarAudioFiles[type]) {
-      playRoarAudio(type, type === 'roar-ultimate' ? action : undefined);
-      return;
-    }
-
-    action();
-  };
-
-  powerBtn.addEventListener('click', () => {
-    ensureAudio();
-    setPowerState(!isOnline);
-    log(isOnline ? '[ORCA ONLINE] Bio-resonance matrix armed.' : '[ORCA STANDBY] Signal pathways cooling.', isOnline ? 'godzilla' : 'system');
-  });
-
-  masterVol.addEventListener('input', updateReadouts);
-  resonancePitch.addEventListener('input', updateReadouts);
-
-  links.forEach((link) => {
-    link.addEventListener('click', () => {
-      links.forEach((entry) => entry.classList.remove('active'));
-      link.classList.add('active');
+    // Navigation Menu Active Highlights
+    navLinks.forEach((link) => {
+        link.addEventListener('click', () => {
+            navLinks.forEach((l) => l.classList.remove('active'));
+            link.classList.add('active');
+        });
     });
-  });
 
-  document.querySelectorAll('.trigger-btn').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      const card = event.currentTarget.closest('.sound-card');
-      const type = card ? card.getAttribute('data-type') : null;
-      if (!type) return;
+    // --------------------------------------------------
+    // Bio-Resonance Waveform Visualizer Loop
+    // --------------------------------------------------
+    function renderVisualizer() {
+        if (!canvasCtx || !canvas) return;
 
-      if (!isOnline) {
-        setPowerState(true);
-        log('[ORCA ONLINE] Warm-up cycle complete. Signal path prepared.', 'godzilla');
-      }
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
 
-      playByType(type);
-    });
-  });
+        const width = canvas.width;
+        const height = canvas.height;
 
-  const drawVisualizer = () => {
-    const width = canvas.width = canvas.clientWidth * window.devicePixelRatio;
-    const height = canvas.height = canvas.clientHeight * window.devicePixelRatio;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+        canvasCtx.fillStyle = '#050B14';
+        canvasCtx.fillRect(0, 0, width, height);
 
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.clientHeight / 2);
+        // Draw HUD Grid Lines
+        canvasCtx.strokeStyle = 'rgba(0, 255, 204, 0.08)';
+        canvasCtx.lineWidth = 1;
+        for (let x = 0; x < width; x += 20) {
+            canvasCtx.beginPath();
+            canvasCtx.moveTo(x, 0);
+            canvasCtx.lineTo(x, height);
+            canvasCtx.stroke();
+        }
 
-    for (let x = 0; x <= canvas.clientWidth; x += 4) {
-      const y = canvas.clientHeight / 2 + Math.sin((x + performance.now() * 0.03) * 0.08) * 18 + Math.sin((x + performance.now() * 0.05) * 0.18) * 10;
-      ctx.lineTo(x, y);
+        if (analyserNode && isOrcaActive) {
+            const bufferLength = analyserNode.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyserNode.getByteTimeDomainData(dataArray);
+
+            canvasCtx.lineWidth = 2;
+            canvasCtx.strokeStyle = '#00ffcc';
+            canvasCtx.shadowBlur = 8;
+            canvasCtx.shadowColor = '#00ffcc';
+
+            canvasCtx.beginPath();
+            const sliceWidth = width / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = (v * height) / 2;
+
+                if (i === 0) {
+                    canvasCtx.moveTo(x, y);
+                } else {
+                    canvasCtx.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            }
+
+            canvasCtx.lineTo(width, height / 2);
+            canvasCtx.stroke();
+            canvasCtx.shadowBlur = 0; // Reset
+        } else {
+            // Idle Flatline Wave
+            canvasCtx.lineWidth = 1.5;
+            canvasCtx.strokeStyle = 'rgba(0, 255, 204, 0.3)';
+            canvasCtx.beginPath();
+            canvasCtx.moveTo(0, height / 2);
+            canvasCtx.lineTo(width, height / 2);
+            canvasCtx.stroke();
+        }
+
+        requestAnimationFrame(renderVisualizer);
     }
 
-    ctx.strokeStyle = '#00f0ff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    requestAnimationFrame(drawVisualizer);
-  };
-
-  updateReadouts();
-  drawVisualizer();
+    // Start Visualizer Loop
+    renderVisualizer();
 });
